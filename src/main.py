@@ -27,7 +27,7 @@ from chat import initialize_chat, render_chat, chatbot
 
 #### Create config object and read the config file ####
 config_object = ConfigParser()
-config_object.read("vidia-config.ini")
+config_object.read("config.ini")
 
 #### Initialize variables and reading configuration ####
 logo=Image.open(config_object["IMAGES"]["logo_address"]) #### Logo for the sidebar
@@ -41,7 +41,7 @@ uploaded=None ##### initialize input document to None
 
 
 #### Set Page Config ####
-st.set_page_config(layout="wide", page_icon=favicon, page_title="VIDIA.I") ###### Set page layout, favicon and title
+st.set_page_config(layout="wide", page_icon=favicon, page_title="Sigmoid-AnswerBot") ###### Set page layout, favicon and title
 
 #### Set Logo on top sidebar ####
 st.sidebar.image(hline) ###### Add horizontal line
@@ -82,7 +82,7 @@ if uploaded is not None and uploaded !="":
 
 
     #### Splitting app into tabs ####
-    tab1, tab2, tab3=st.tabs(["|__QnA__ 🔍|","|__Document Summary__ 📜|","|__About VIDIA__ 🎭|"])
+    tab1, tab2, tab3=st.tabs(["|__QnA__ 🔍|","|__Document Summary__ 📜|","|__About AnswerBot__ 🎭|"])
 
     with tab1: #### The QnA Tab
         
@@ -95,7 +95,7 @@ if uploaded is not None and uploaded !="":
                 inp=st.text_input("Please enter your question below and hit Submit. Please note that this is not a chat, yet 😉", key="current")
                 submitted = st.form_submit_button("Submit")
 
-            if not submitted: #### This will render the initial state message by VIDIA when no user question has been asked ####
+            if not submitted: #### This will render the initial state message by AnswerBot when no user question has been asked ####
                 with st.container(): #### Define container for the chat
                     render_chat() #### Function renders chat messages based on recorded chat history
             if submitted:
