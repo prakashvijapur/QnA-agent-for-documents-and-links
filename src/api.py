@@ -11,7 +11,7 @@ from configparser import ConfigParser ###### Import ConfigParser library for rea
 
 #### Create config object and read the config file ####
 config_object = ConfigParser() ###### Create config object
-config_object.read("./vidia-config.ini") ###### Read config file
+config_object.read("./config.ini") ###### Read config file
 models=config_object["MODEL"]["model"] ##### model for GPT call
 
 #### Check if OpenAI API key is present ####
