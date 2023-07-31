@@ -64,7 +64,7 @@ if check_key():
 if uploaded is not None and uploaded !="":
 
     with st.spinner("reading "+input_choice+"..." if input_choice!="YouTube" else "extracting audio from YouTube..." if input_choice=="YouTube" else "extracting text from image..."): ###### Wait while input is being read
-        words, pages, string_data,succeed,token=check_upload(uploaded=uploaded,input_choice=input_choice) 
+        words, pages, string_data, succeed, token=check_upload(uploaded=uploaded,input_choice=input_choice) 
         ###### Get input text from input document
         ###### words - number of words in the input
         ###### pages - number of embeddings in the input

@@ -1,0 +1,2142 @@
+My Favourite
+Paper on
+Model
+Selection,
+Evaluation,
+& Algorithm
+Selection.The paper was written by
+Dr. Sebastian Raschka
+(University of Wisconsin-Madison)
+in 2018
+To read the
+paper, go to the
+next slide.Model Evaluation, Model Selection, and Algorithm
+Selection in Machine Learning
+SebastianRaschka
+UniversityofWisconsin–Madison
+DepartmentofStatistics
+0202
+November2018
+sraschka@wisc.edu
+voN
+Abstract
+11 The correct use of model evaluation, model selection, and algorithm selection
+techniques is vital in academic machine learning research as well as in many
+industrialsettings. Thisarticlereviewsdifferenttechniquesthatcanbeusedfor
+]GL.sc[ eachofthesethreesubtasksanddiscussesthemainadvantagesanddisadvantages
+of each technique with references to theoretical and empirical studies. Further,
+recommendationsaregiventoencouragebestyetfeasiblepracticesinresearchand
+applicationsofmachinelearning. Commonmethodssuchastheholdoutmethod
+for model evaluation and selection are covered, which are not recommended
+whenworkingwithsmalldatasets. Differentflavorsofthebootstraptechnique
+are introduced for estimating the uncertainty of performance estimates, as an
+3v80821.1181:viXra
+alternativetoconfidenceintervalsvianormalapproximationifbootstrappingis
+computationallyfeasible. Commoncross-validationtechniquessuchasleave-one-
+outcross-validationandk-foldcross-validationarereviewed, thebias-variance
+trade-offforchoosingkisdiscussed,andpracticaltipsfortheoptimalchoiceof
+karegivenbasedonempiricalevidence. Differentstatisticaltestsforalgorithm
+comparisonsarepresented,andstrategiesfordealingwithmultiplecomparisons
+suchasomnibustestsandmultiple-comparisoncorrectionsarediscussed. Finally,
+alternativemethodsforalgorithmselection,suchasthecombinedF-test5x2cross-
+validationandnestedcross-validation,arerecommendedforcomparingmachine
+learningalgorithmswhendatasetsaresmall.Contents
+1 Introduction: EssentialModelEvaluationTermsandTechniques 4
+1.1 PerformanceEstimation: GeneralizationPerformancevs. ModelSelection . . . . . 4
+1.2 AssumptionsandTerminology . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+1.3 ResubstitutionValidationandtheHoldoutMethod. . . . . . . . . . . . . . . . . . 7
+1.4 Stratification. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+1.5 HoldoutValidation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+1.6 PessimisticBias . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+1.7 ConfidenceIntervalsviaNormalApproximation. . . . . . . . . . . . . . . . . . . 10
+2 BootstrappingandUncertainties 11
+2.1 Overview . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+2.2 Resampling . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+2.3 RepeatedHoldoutValidation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15
+2.4 TheBootstrapMethodandEmpiricalConfidenceIntervals . . . . . . . . . . . . . 15
+3 Cross-validationandHyperparameterOptimization 20
+3.1 Overview . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20
+3.2 AboutHyperparametersandModelSelection . . . . . . . . . . . . . . . . . . . . 21
+3.3 TheThree-WayHoldoutMethodforHyperparameterTuning . . . . . . . . . . . . 22
+3.4 Introductiontok-foldCross-Validation. . . . . . . . . . . . . . . . . . . . . . . . 24
+3.5 SpecialCases: 2-FoldandLeave-One-OutCross-Validation. . . . . . . . . . . . . 26
+3.6 k-foldCross-ValidationandtheBias-VarianceTrade-off . . . . . . . . . . . . . . 28
+3.7 ModelSelectionviak-foldCross-Validation . . . . . . . . . . . . . . . . . . . . . 30
+3.8 ANoteAboutModelSelectionandLargeDatasets . . . . . . . . . . . . . . . . . 30
+3.9 ANoteAboutFeatureSelectionDuringModelSelection . . . . . . . . . . . . . . 30
+3.10 TheLawofParsimony . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32
+3.11 Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 33
+4 AlgorithmComparison 34
+4.1 Overview . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 34
+4.2 TestingtheDifferenceofProportions. . . . . . . . . . . . . . . . . . . . . . . . . 34
+4.3 ComparingTwoModelswiththeMcNemarTest. . . . . . . . . . . . . . . . . . . 35
+4.4 Exactp-ValuesviatheBinomialTest . . . . . . . . . . . . . . . . . . . . . . . . . 37
+4.5 MultipleHypothesesTesting . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 38
+4.6 Cochran’sQTestforComparingthePerformanceofMultipleClassifiers. . . . . . 39
+4.7 TheF-testforComparingMultipleClassifiers . . . . . . . . . . . . . . . . . . . . 41
+4.8 ComparingAlgorithms . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 42
+4.9 ResampledPairedt-Test . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43
+4.10 k-foldCross-validatedPairedt-Test . . . . . . . . . . . . . . . . . . . . . . . . . 44
+24.11 Dietterich’s5x2-FoldCross-ValidatedPairedt-Test . . . . . . . . . . . . . . . . . 44
+4.12 Alpaydin’sCombined5x2cvF-test . . . . . . . . . . . . . . . . . . . . . . . . . 45
+4.13 Effectsize . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 45
+4.14 NestedCross-Validation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 45
+4.15 Conclusions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 46
+4.16 Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 48
+31 Introduction: EssentialModelEvaluationTermsandTechniques
+Machinelearninghasbecomeacentralpartofourlife–asconsumers,customers,andhopefully
+asresearchersandpractitioners. Whetherweareapplyingpredictivemodelingtechniquestoour
+researchorbusinessproblems,Ibelievewehaveonethingincommon: Wewanttomake"good"
+predictions. Fittingamodeltoourtrainingdataisonething,buthowdoweknowthatitgeneralizes
+welltounseendata? Howdoweknowthatitdoesnotsimplymemorizethedatawefeditandfailsto
+makegoodpredictionsonfuturesamples,samplesthatithasnotseenbefore? Andhowdoweselect
+agoodmodelinthefirstplace? Maybeadifferentlearningalgorithmcouldbebetter-suitedforthe
+problemathand?
+Modelevaluationiscertainlynotjusttheendpointofourmachinelearningpipeline. Beforewe
+handleanydata,wewanttoplanaheadandusetechniquesthataresuitedforourpurposes. Inthis
+article,wewillgooveraselectionofthesetechniques,andwewillseehowtheyfitintothebigger
+picture,atypicalmachinelearningworkflow.
+1.1 PerformanceEstimation: GeneralizationPerformancevs. ModelSelection
+Letusconsidertheobviousquestion,"Howdoweestimatetheperformanceofamachinelearning
+model?" A typical answer to this question might be as follows: "First, we feed the training data
+to our learning algorithm to learn a model. Second, we predict the labels of our test set. Third,
+we count the number of wrong predictions on the test dataset to compute the model’s prediction
+accuracy."Dependingonourgoal,however,estimatingtheperformanceofamodelisnotthattrivial,
+unfortunately. Maybeweshouldaddressthepreviousquestionfromadifferentangle: "Whydowe
+careaboutperformanceestimatesatall?"Ideally,theestimatedperformanceofamodeltellshow
+wellitperformsonunseendata–makingpredictionsonfuturedataisoftenthemainproblemwe
+wanttosolveinapplicationsofmachinelearningorthedevelopmentofnewalgorithms. Typically,
+machinelearninginvolvesalotofexperimentation,though–forexample,thetuningoftheinternal
+knobsofalearningalgorithm,theso-calledhyperparameters. Runningalearningalgorithmovera
+trainingdatasetwithdifferenthyperparametersettingswillresultindifferentmodels. Sinceweare
+typicallyinterestedinselectingthebest-performingmodelfromthisset,weneedtofindawayto
+estimatetheirrespectiveperformancesinordertorankthemagainsteachother.
+Going one step beyond mere algorithm fine-tuning, we are usually not only experimenting with
+theonesinglealgorithmthatwethinkwouldbethe"bestsolution"underthegivencircumstances.
+Moreoftenthannot,wewanttocomparedifferentalgorithmstoeachother,oftentimesintermsof
+predictiveandcomputationalperformance. Letussummarizethemainpointswhyweevaluatethe
+predictiveperformanceofamodel:
+1. We want to estimate the generalization performance, the predictive performance of our
+modelonfuture(unseen)data.
+2. Wewanttoincreasethepredictiveperformancebytweakingthelearningalgorithmand
+selectingthebestperformingmodelfromagivenhypothesisspace.
+3. Wewanttoidentifythemachinelearningalgorithmthatisbest-suitedfortheproblemat
+hand;thus,wewanttocomparedifferentalgorithms,selectingthebest-performingoneas
+wellasthebestperformingmodelfromthealgorithm’shypothesisspace.
+Although these three sub-tasks listed above have all in common that we want to estimate the
+performanceofamodel,theyallrequiredifferentapproaches. Wewilldiscusssomeofthedifferent
+methodsfortacklingthesesub-tasksinthisarticle.
+Ofcourse,wewanttoestimatethefutureperformanceofamodelasaccuratelyaspossible. However,
+weshallnotethatbiasedperformanceestimatesareperfectlyokayinmodelselectionandalgorithm
+selectionifthebiasaffectsallmodelsequally. Ifwerankdifferentmodelsoralgorithmsagainsteach
+otherinordertoselectthebest-performingone,weonlyneedtoknowtheir"relative"performance.
+For example, if all performance estimates are pessimistically biased, and we underestimate their
+performances by 10%, it will not affect the ranking order. More concretely, if we obtaind three
+modelswithpredictionaccuracyestimatessuchas
+M2: 75%>M1: 70%>M3: 65%,
+4wewouldstillrankthemthesamewayifweaddeda10%pessimisticbias:
+M2: 65%>M1: 60%>M3: 55%.
+However,notethatifwereportedthegeneralization(futureprediction)accuracyofthebestranked
+model(M2)tobe65%,thiswouldobviouslybequiteinaccurate.Estimatingtheabsoluteperformance
+ofamodelisprobablyoneofthemostchallengingtasksinmachinelearning.
+1.2 AssumptionsandTerminology
+Modelevaluationiscertainlyacomplextopic. Tomakesurethatwedonotdivergetoomuchfrom
+thecoremessage,letusmakecertainassumptionsandgooversomeofthetechnicaltermsthatwe
+willusethroughoutthisarticle.
+i.i.d. Weassumethatthetrainingexamplesarei.i.d(independentandidenticallydistributed),which
+meansthatallexampleshavebeendrawnfromthesameprobabilitydistributionandarestatistically
+independentfromeachother. Ascenariowheretrainingexamplesarenotindependentwouldbe
+workingwithtemporaldataortime-seriesdata.
+Supervisedlearningandclassification. Thisarticlefocussesonsupervisedlearning,asubcategory
+ofmachinelearningwherethetargetvaluesareknowninagivendataset. Althoughmanyconcepts
+alsoapplytoregressionanalysis,wewillfocusonclassification,theassignmentofcategoricaltarget
+labelstothetrainingandtestexamples.
+0-1lossandpredictionaccuracy. Inthefollowingarticle,wewillfocusonthepredictionaccuracy,
+whichisdefinedasthenumberofallcorrectpredictionsdividedbythenumberofexamplesinthe
+dataset. Wecomputethepredictionaccuracyasthenumberofcorrectpredictionsdividedbythe
+numberofexamplesn. Orinmoreformalterms,wedefinethepredictionaccuracyACCas
+ACC=1−ERR, (1)
+wherethepredictionerror,ERR,iscomputedastheexpectedvalueofthe0-1lossovernexamples
+inadatasetS:
+n
+1 (cid:88)
+ERR = L(yˆ,y ). (2)
+S n i i
+i=1
+The0-1lossL(·)isdefinedas
+
+0 ifyˆ =y
+ i i
+L(yˆ,y )= (3)
+i i
+1 ifyˆ (cid:54)=y ,
+i i
+wherey istheithtrueclasslabelandyˆ theithpredictedclasslabel,respectively. Ourobjectiveisto
+i i
+learnamodelhthathasagoodgeneralizationperformance. Suchamodelmaximizestheprediction
+accuracyor,viceversa,minimizestheprobability,C(h),ofmakingawrongprediction:
+C(h)= Pr [h(x)(cid:54)=y]. (4)
+(x,y)∼D
+Here,Disthegeneratingdistributionthedatasethasbeendrawnfrom,xisthefeaturevectorofa
+trainingexamplewithclasslabely.
+Lastly, sincethisarticlemostlyreferstothepredictionaccuracy(insteadoftheerror), wedefine
+Kronecker’sDeltafunction:
+(cid:0) (cid:1)
+δ L(yˆ,y ) =1−L(yˆ,y ), (5)
+i i i i
+5suchthat
+(cid:0) (cid:1)
+δ L(yˆ,y ) =1ifyˆ =y (6)
+i i i i
+and
+(cid:0) (cid:1)
+δ L(yˆ,y ) =0ifyˆ (cid:54)=y . (7)
+i i i i
+Bias. Throughoutthisarticle,thetermbiasreferstothestatisticalbias(incontrasttothebiasina
+machinelearningsystem). Ingeneralterms,thebiasofanestimatorβˆisthedifferencebetweenits
+expectedvalueE[βˆ]andthetruevalueofaparameterβ beingestimated:
+Bias=E[βˆ]−β. (8)
+Thus,ifBias=E[βˆ]−β =0,thenβˆisanunbiasedestimatorofβ. Moreconcretely,wecompute
+thepredictionbiasasthedifferencebetweentheexpectedpredictionaccuracyofamodelandits
+truepredictionaccuracy. Forexample,ifwecomputedthepredictionaccuracyonthetrainingset,
+thiswouldbeanoptimisticallybiasedestimateoftheabsoluteaccuracyofamodelsinceitwould
+overestimateitstrueaccuracy.
+Variance. Thevarianceissimplythestatisticalvarianceoftheestimatorβˆanditsexpectedvalue
+ˆ
+E[β],forinstance,thesquareddifferenceofthe:
+Variance=E(cid:104)(cid:0) βˆ−E[βˆ](cid:1)2(cid:105)
+. (9)
+Thevarianceisameasureofthevariabilityofamodel’spredictionsifwerepeatthelearningprocess
+multipletimeswithsmallfluctuationsinthetrainingset. Themoresensitivethemodel-building
+processistowardsthesefluctuations,thehigherthevariance.1
+Finally,letusdisambiguatethetermsmodel,hypothesis,classifier,learningalgorithms,andparame-
+ters:
+Target function. In predictive modeling, we are typically interested in modeling a particular
+process;wewanttolearnorapproximateaspecific,unknownfunction. Thetargetfunctionf(x)=y
+isthetruefunctionf(·)thatwewanttomodel.
+Hypothesis. A hypothesis is a certain function that we believe (or hope) is similar to the true
+function,thetargetfunctionf(·)thatwewanttomodel. Incontextofspamclassification,itwould
+beaclassificationrulewecameupwiththatallowsustoseparatespamfromnon-spamemails.
+Model. Inthemachinelearningfield,thetermshypothesisandmodelareoftenusedinterchangeably.
+Inothersciences, thesetermscanhavedifferentmeanings: Ahypothesiscouldbethe"educated
+guess"bythescientist,andthemodelwouldbethemanifestationofthisguesstotestthishypothesis.
+Learningalgorithm. Again,ourgoalistofindorapproximatethetargetfunction,andthelearning
+algorithmisasetofinstructionsthattriedtomodelthetargetfunctionusingatrainingdataset. A
+learningalgorithmcomeswithahypothesisspace,thesetofpossiblehypothesesitcanexploreto
+modeltheunknowntargetfunctionbyformulatingthefinalhypothesis.
+1For a more detailed explanation of the bias-variance decomposition of loss functions, and how
+high variance relates to overfitting and high bias relates to underfitting, please see my lecture notes I
+madeavailableathttps://github.com/rasbt/stat479-machine-learning-fs18/blob/master/08_
+eval-intro/08_eval-intro_notes.pdf.
+6Hyperparameters. Hyperparametersarethetuningparametersofamachinelearningalgorithm–
+forexample,theregularizationstrengthofanL2penaltyinthelossfunctionoflogisticregression,or
+avalueforsettingthemaximumdepthofadecisiontreeclassifier. Incontrast,modelparameters
+aretheparametersthatalearningalgorithmfitstothetrainingdata–theparametersofthemodel
+itself. Forexample,theweightcoefficients(orslope)ofalinearregressionlineanditsbiasterm
+(here: y-axisintercept)aremodelparameters.
+1.3 ResubstitutionValidationandtheHoldoutMethod
+Theholdoutmethodisinarguablythesimplestmodelevaluationtechnique;itcanbesummarizedas
+follows. First,wetakealabeleddatasetandsplititintotwoparts: Atrainingandatestset. Then,we
+fitamodeltothetrainingdataandpredictthelabelsofthetestset. Thefractionofcorrectpredictions,
+whichcanbecomputedbycomparingthepredictedlabelstothegroundtruthlabelsofthetestset,
+constitutesourestimateofthemodel’spredictionaccuracy. Here, itisimportanttonotethatwe
+donotwanttotrainandevaluateamodelonthesametrainingdataset(thisiscalledresubstitution
+validationorresubstitutionevaluation),sinceitwouldtypicallyintroduceaveryoptimisticbiasdue
+tooverfitting. Inotherwords,wecannottellwhetherthemodelsimplymemorizedthetrainingdata,
+orwhetheritgeneralizeswelltonew,unseendata. (Onasidenote,wecanestimatethisso-called
+optimismbiasasthedifferencebetweenthetrainingandtestaccuracy.)
+Typically,thesplittingofadatasetintotrainingandtestsetsisasimpleprocessofrandomsubsam-
+pling. Weassumethatalldatapointshavebeendrawnfromthesameprobabilitydistribution(with
+respecttoeachclass). Andwerandomlychoose 2/3ofthesesamplesforthetrainingsetand 1/3
+ofthesamplesforthetestset. Notethattherearetwoproblemswiththisapproach,whichwewill
+discussinthenextsections.
+1.4 Stratification
+We have to keep in mind that a dataset represents a random sample drawn from a probability
+distribution,andwetypicallyassumethatthissampleisrepresentativeofthetruepopulation–more
+orless. Now,furthersubsamplingwithoutreplacementaltersthestatistic(mean,proportion,and
+variance)ofthesample. Thedegreetowhichsubsamplingwithoutreplacementaffectsthestatisticof
+asampleisinverselyproportionaltothesizeofthesample. Letushavealookatanexampleusing
+theIrisdataset2,whichwerandomlydivideinto2/3trainingdataand1/3testdataasillustratedin
+Figure1. (ThesourcecodeforgeneratingthisgraphicisavailableonGitHub3.)
+Whenwerandomlydividealabeleddatasetintotrainingandtestsets,weviolatetheassumption
+ofstatisticalindependence. TheIrisdatasetsconsistsof50Setosa,50Versicolor,and50Virginica
+flowers;theflowerspeciesaredistributeduniformly:
+• 33.3%Setosa
+• 33.3%Versicolor
+• 33.3%Virginica
+Ifarandomfunctionassigns2/3oftheflowers(100)tothetrainingsetand1/3oftheflowers(50)to
+thetestset,itmayyieldthefollowing(alsoshowninFigure1):
+• trainingset→38×Setosa,28×Versicolor,34×Virginica
+• testset→12×Setosa,22×Versicolor,16×Virginica
+AssumingthattheIrisdatasetisrepresentativeofthetruepopulation(forinstance,assumingthat
+irisflowerspeciesaredistributeduniformlyinnature),wejustcreatedtwoimbalanceddatasetswith
+non-uniformclassdistributions. Theclassratiothatthelearningalgorithmusestolearnthemodel
+is"38%/28%/34%."Thetestdatasetthatisusedforevaluatingthemodelisimbalancedaswell,
+andevenworse,itisbalancedinthe"opposite"direction: "24%/44%/32%."Unlessthelearning
+algorithmiscompletelyinsensitivetotheseperturbations,thisiscertainlynotideal. Theproblem
+becomesevenworseifadatasethasahighclassimbalanceupfront,priortotherandomsubsampling.
+2https://archive.ics.uci.edu/ml/datasets/iris
+3https://github.com/rasbt/model-eval-article-supplementary/blob/master/code/iris-random-dist.ipynb
+7Dataset before splitting (n = 150)
+This work by Sebastian Raschka is licensed under a
+Creative Commons Attribution 4.0 International License.
+Training dataset (n = 100) Test dataset (n = 50)
+Sepal Length [cm] Sepal Length [cm]
+Figure1: DistributionofIrisflowerclassesuponrandomsubsamplingintotrainingandtestsets.
+Intheworst-casescenario,thetestsetmaynotcontainanyinstanceofaminorityclassatall. Thus,
+arecommendedpracticeistodividethedatasetinastratifiedfashion. Here,stratificationsimply
+meansthatwerandomlysplitadatasetsuchthateachclassiscorrectlyrepresentedintheresulting
+subsets(thetrainingandthetestset)–inotherwords,stratificationisanapproachtomaintainthe
+originalclassproportioninresultingsubsets.
+Itshallbenotedthatrandomsubsamplinginnon-stratifiedfashionisusuallynotabigconcernwhen
+workingwithrelativelylargeandbalanceddatasets. However,inmyopinion,stratifiedresamplingis
+usuallybeneficialinmachinelearningapplications. Moreover,stratifiedsamplingisincrediblyeasy
+toimplement,andRonKohaviprovidesempiricalevidence[Kohavi,1995]thatstratificationhasa
+positiveeffectonthevarianceandbiasoftheestimateink-foldcross-validation,atechniquethat
+willbediscussedlaterinthisarticle.
+1.5 HoldoutValidation
+Beforedivingdeeperintotheprosandconsoftheholdoutvalidationmethod,Figure2providesa
+visualsummaryofthismethodthatwillbediscussedinthefollowingtext.
+Step 1. First, we randomly divide our available data into two subsets: a training and a test set.
+Settingtestdataasideisawork-aroundfordealingwiththeimperfectionsofanon-idealworld,such
+aslimiteddataandresources,andtheinabilitytocollectmoredatafromthegeneratingdistribution.
+Here,thetestsetshallrepresentnew,unseendatatothemodel;itisimportantthatthetestsetisonly
+usedoncetoavoidintroducingbiaswhenweestimatingthegeneralizationperformance. Typically,
+weassign2/3tothetrainingsetand1/3ofthedatatothetestset. Othercommontraining/testsplits
+are60/40,70/30,or80/20–oreven90/10ifthedatasetisrelativelylarge.
+Step 2. After setting test examples aside, we pick a learning algorithm that we think could be
+appropriateforthegivenproblem.AsaquickreminderregardingtheHyperparameterValuesdepicted
+inFigure2,hyperparametersaretheparametersofourlearningalgorithm,ormeta-parameters. And
+wehavetospecifythesehyperparametervaluesmanually–thelearningalgorithmdoesnotlearn
+thesefromthetrainingdataincontrasttotheactualmodelparameters. Sincehyperparametersarenot
+8Training Data
+Training Labels
+Data
+1
+Labels
+Test Data
+Test Labels
+Hyperparameter
+Training Data Values
+2 Model
+Training Labels Learning
+Algorithm
+Test Data
+Prediction
+3 Performance
+Model
+Test Labels
+Hyperparameter
+Data Values Final
+4
+Labels Learning Model
+Algorithm
+Figure2: Visualsummaryoftheholdoutvalidationmethod.
+learnedduringmodelfitting,weneedsomesortof"extraprocedure"or"externalloop"tooptimize
+theseseparately–thisholdoutapproachisill-suitedforthetask.So,fornow,wehavetogowithsome
+fixedhyperparametervalues–wecoulduseourintuitionorthedefaultparametersofanoff-the-shelf
+algorithmifweareusinganexistingmachinelearninglibrary.
+Step3. Afterthelearningalgorithmfitamodelinthepreviousstep, thenextquestionis: How
+"good"istheperformanceoftheresultingmodel? Thisiswheretheindependenttestsetcomesinto
+play. Sincethelearningalgorithmhasnot"seen"thistestsetbefore,itshouldprovidearelatively
+unbiasedestimateofitsperformanceonnew,unseendata. Now,wetakethistestsetandusethe
+modeltopredicttheclasslabels. Then,wetakethepredictedclasslabelsandcomparethemtothe
+"groundtruth,"thecorrectclasslabels,toestimatethemodelsgeneralizationaccuracyorerror.
+Step4. Finally,weobtainedanestimateofhowwellourmodelperformsonunseendata. So,there
+isnoreasonforwith-holdingthetestsetfromthealgorithmanylonger. Sinceweassumethatour
+samplesarei.i.d.,thereisnoreasontoassumethemodelwouldperformworseafterfeedingitallthe
+availabledata. Asaruleofthumb,themodelwillhaveabettergeneralizationperformanceifthe
+algorithmsusesmoreinformativedata–assumingthatithasnotreacheditscapacity,yet.
+91.6 PessimisticBias
+Section1.3(ResubstitutionValidationandtheHoldoutMethod)referencedtwotypesofproblems
+thatoccurwhenadatasetissplitintoseparatetrainingandtestsets. Thefirstproblemthatoccursis
+theviolationofindependenceandthechangingclassproportionsuponsubsampling(discussedin
+Section1.4). Walkingthroughtheholdoutvalidationmethod(Section1.5)toucheduponasecond
+problem we encounter upon subsampling a dataset: Step 4 mentioned capacity of a model, and
+whetheradditionaldatacouldbeusefulornot. Tofollowuponthecapacityissue: Ifamodelhas
+notreacheditscapacity,theperformanceestimatewouldbepessimisticallybiased. Thisassumes
+thatthealgorithmcouldlearnabettermodelifitwasgivenmoredata–bysplittingoffaportionof
+thedatasetfortesting,wewithholdvaluabledataforestimatingthegeneralizationperformance(for
+instance,thetestdataset). Toaddressthisissue,onemightfitthemodeltothewholedatasetafter
+estimatingthegeneralizationperformance(seeFigure2step4). However,usingthisapproach,we
+cannotestimateitsgeneralizationperformanceoftherefitmodel,sincewehavenow"burned"the
+testdataset. Itisadilemmathatwecannotreallyavoidinreal-worldapplication,butweshouldbe
+awarethatourestimateofthegeneralizationperformancemaybepessimisticallybiasedifonlya
+portionofthedataset,thetrainingdataset,isusedformodelfitting(thisisespeciallyaffectsmodels
+fittorelativelysmalldatasets).
+1.7 ConfidenceIntervalsviaNormalApproximation
+UsingtheholdoutmethodasdescribedinSection1.5,wecomputedapointestimateofthegener-
+alizationperformanceofamodel. Certainly,aconfidenceintervalaroundthisestimatewouldnot
+onlybemoreinformativeanddesirableincertainapplications,butourpointestimatecouldbequite
+sensitivetotheparticulartraining/testsplit(forinstance,sufferingfromhighvariance). Asimple
+approachforcomputingconfidenceintervalsofthepredictiveaccuracyorerrorofamodelisviathe
+so-callednormalapproximation. Here,weassumethatthepredictionsfollowanormaldistribution,
+tocomputetheconfidenceintervalonthemeanonasingletraining-testsplitunderthecentrallimit
+theorem. Thefollowingtextillustrateshowthisworks.
+Asdiscussedearlier,wecomputethepredictionaccuracyonadatasetS (here: testset)ofsizenas
+follows:
+n
+1 (cid:88)
+ACC = δ(L(yˆ,y )), (10)
+S n i i
+i=1
+whereL(·)isthe0-1lossfunction(Equation3),andndenotesthenumberofsamplesinthetest
+dataset. Further,letyˆ bethepredictedclasslabelandy bethegroundtruthclasslabeloftheithtest
+i i
+example,respectively. So,wecouldnowconsidereachpredictionasaBernoullitrial,andthenumber
+ofcorrectpredictionsX isfollowingabinomialdistributionX ∼ (n,p)withntestexamples,k
+trials,andtheprobabilityofsuccessp,wheren∈Nandp∈[0,1]:
+(cid:18) (cid:19)
+n
+f(k;n,p)=Pr(X =k)= pk(1−p)n−k, (11)
+k
+fork =0,1,2,...,n,where
+(cid:18) (cid:19)
+n n!
+= . (12)
+k k!(n−k)!
+(Here,pistheprobabilityofsuccess,andconsequently,(1−p)istheprobabilityoffailure–awrong
+prediction.)
+Now,theexpectednumberofsuccessesiscomputedasµ=np,ormoreconcretely,ifthemodelhas
+a50%successrate,weexpect20outof40predictionstobecorrect. Theestimatehasavarianceof
+σ2 =np(1−p)=10 (13)
+10andastandarddeviationof
+(cid:112)
+σ = np(1−p)=3.16. (14)
+Sinceweareinterestedintheaveragenumberofsuccesses,notitsabsolutevalue,wecomputethe
+varianceoftheaccuracyestimateas
+1
+σ2 = ACC (1−ACC ), (15)
+n S S
+andtherespectivestandarddeviationas
+(cid:114)
+1
+σ = ACC (1−ACC ). (16)
+n S S
+Underthenormalapproximation,wecanthencomputetheconfidenceintervalas
+(cid:114)
+1
+ACC ±z ACC (1−ACC ), (17)
+S n S S
+whereαistheerrorquantileandz isthe1− α quantileofastandardnormaldistribution. Fora
+2
+typicalconfidenceintervalof95%,(α=0.05),wehavez =1.96.
+Inpractice,however,Iwouldratherrecommendrepeatingthetraining-testsplitmultipletimesto
+computetheconfidenceintervalonthemeanestimate(forinstance,averagingtheindividualruns).
+Inanycase,oneinterestingtake-awayfornowisthathavingfewersamplesinthetestsetincreases
+thevariance(seeninthedenominatorabove)andthuswidenstheconfidenceinterval. Confidence
+intervalsandestimatinguncertaintywillbediscussedinmoredetailinthenextsection,Section2.
+2 BootstrappingandUncertainties
+2.1 Overview
+Theprevioussection(Section1,Introduction: EssentialModelEvaluationTermsandTechniques)
+introducedthegeneralideasbehindmodelevaluationinsupervisedmachinelearning. Wediscussed
+theholdoutmethod,whichhelpsustodealwithrealworldlimitationssuchaslimitedaccesstonew,
+labeleddataformodelevaluation. Usingtheholdoutmethod,wesplitourdatasetintotwoparts: A
+trainingandatestset. First,weprovidethetrainingdatatoasupervisedlearningalgorithm. The
+learningalgorithmbuildsamodelfromthetrainingsetoflabeledobservations. Then,weevaluatethe
+predictiveperformanceofthemodelonanindependenttestsetthatshallrepresentnew,unseendata.
+Also,webrieflyintroducedthenormalapproximation,whichrequiresustomakecertainassumptions
+that allow us to compute confidence intervals for modeling the uncertainty of our performance
+estimatebasedonasingletestset,whichwehavetotakewithagrainofsalt.
+This section introduces some of the advanced techniques for model evaluation. We will start by
+discussingtechniquesforestimatingtheuncertaintyofourestimatedmodelperformanceaswell
+asthemodel’svarianceandstability. Andaftergettingthesebasicsunderourbelt,wewilllookat
+cross-validationtechniquesformodelselectioninthenextarticleinthisseries.Aswerememberfrom
+Section1,therearethreerelated,yetdifferenttasksorreasonswhywecareaboutmodelevaluation:
+1. Wewanttoestimatethegeneralizationaccuracy,thepredictiveperformanceofamodelon
+future(unseen)data.
+2. Wewanttoincreasethepredictiveperformancebytweakingthelearningalgorithmand
+selectingthebest-performingmodelfromagivenhypothesisspace.
+3. Wewanttoidentifythemachinelearningalgorithmthatisbest-suitedfortheproblemat
+hand. Hence,wewanttocomparedifferentalgorithms,selectingthebest-performingoneas
+wellasthebest-performingmodelfromthealgorithm’shypothesisspace.
+11(ThecodeforgeneratingthefiguresdiscussedinthissectionareavailableonGitHub4.)
+2.2 Resampling
+Thefirstsectionofthisarticleintroducedthepredictionaccuracyorerrormeasuresofclassification
+models. TocomputetheclassificationerrororaccuracyonadatasetS,wedefinedthefollowing
+equation:
+n
+1 (cid:88) (cid:0) (cid:1)
+ERR = L yˆ,y =1−ACC . (18)
+S n i i S
+i=1
+Here,L(·)representsthe0-1loss,whichiscomputedfromapredictedclasslabel(yˆ)andatrue
+i
+classlabel(y )fori=1,...,nindatasetS:
+i
+
+0 ifyˆ =y
+ i i
+L(yˆ,y )= (19)
+i i
+1 ifyˆ (cid:54)=y .
+i i
+Inessence,theclassificationerrorissimplythecountofincorrectpredictionsdividedbythenumber
+ofsamplesinthedataset. Viceversa,wecomputethepredictionaccuracyasthenumberofcorrect
+predictionsdividedbythenumberofsamples.
+Note that the concepts presented in this section also apply to other types of supervised learning,
+suchasregressionanalysis. Tousetheresamplingmethodspresentedinthefollowingsectionsfor
+regressionmodels,weswaptheaccuracyorerrorcomputationby,forexample,themeansquared
+error(MSE):
+n
+1 (cid:88)
+MSE = (yˆ −y )2. (20)
+S n i i
+i=1
+AsdiscussedinSection1,performanceestimatesmaysufferfrombiasandvariance,andweare
+interestedinfindingagoodtrade-off. Forinstance,theresubstitutionevaluation(fittingamodelto
+atrainingsetandusingthesametrainingsetformodelevaluation)isheavilyoptimisticallybiased.
+Viceversa,withholdingalargeportionofthedatasetasatestsetmayleadtopessimisticallybiased
+estimates. Whilereducingthesizeofthetestsetmaydecreasethispessimisticbias,thevarianceofa
+performanceestimateswillmostlikelyincrease. Anintuitiveillustrationoftherelationshipbetween
+biasandvarianceisgiveninFigure3. Thissectionwillintroducealternativeresamplingmethodsfor
+findingagoodbalancebetweenbiasandvarianceformodelevaluationandselection.
+Thereasonwhyaproportionallylargetestsetsincreasethepessimisticbiasisthatthemodelmay
+nothavereacheditsfullcapacity,yet. Inotherwords,thelearningalgorithmcouldhaveformulated
+a more powerful, more generalizable hypothesis for classification if it had seen more data. To
+demonstratethiseffect,Figure4showslearningcurvesofasoftmaxclassifiers,whichwerefittedto
+smallsubsetsoftheMNIST5dataset.
+TogeneratethelearningcurvesshowninFigure4,500randomsamplesofeachofthetenclasses
+fromMNIST–instancesofthehandwrittendigits0to9–weredrawn. The5000-sampleMNIST
+subsetwasthenrandomlydividedintoa3500-sampletrainingsubsetandatestsetcontaining1500
+sampleswhilekeepingtheclassproportionsintactviastratification. Finally,evensmallersubsets
+ofthe3500-sampletrainingsetwereproducedviarandomized,stratifiedsplits,andthesesubsets
+were used to fit softmax classifiers and the same 1500-sample test set was used to evaluate their
+performances(samplesmayoverlapbetweenthesetrainingsubsets). Lookingattheplotabove,we
+canseetwodistincttrends. First,theresubstitutionaccuracy(trainingset)declinesasthenumberof
+trainingsamplesgrows. Second,weobserveanimprovinggeneralizationaccuracy(testset)with
+anincreasingtrainingsetsize. Thesetrendscanlikelybeattributedtoareductioninoverfitting. If
+4https://github.com/rasbt/model-eval-article-supplementary/blob/master/code/resampling-and-kfold.ipynb
+5http://yann.lecun.com/exdb/mnist
+12Low Variance High Variance
+(Precise) (Not Precise)
+saiB )etaruccA()etaruccA
+woLsaiB
+hgiH
+toN(
+Figure3: Illustrationofbiasandvariance.
+Figure4: LearningcurvesofsoftmaxclassifiersfittoMNIST.
+thetrainingsetissmall,thealgorithmismorelikelypickingupnoiseinthetrainingsetsothatthe
+modelfailstogeneralizewelltodatathatithasnotseenbefore. Thisobservationalsoexplainsthe
+pessimisticbiasoftheholdoutmethod: Atrainingalgorithmmaybenefitfrommoretrainingdata,
+datathatwaswithheldfortesting. Thus,afterweevaluatedamodel,wemaywanttorunthelearning
+algorithmonceagainonthecompletedatasetbeforeweuseitinareal-worldapplication.
+Now,thatweestablishedthepointofpessimisticbiasesfordisproportionallylargetestsets,wemay
+askwhetheritisagoodideatodecreasethesizeofthetestset. Decreasingthesizeofthetestset
+bringsupanotherproblem: Itmayresultinasubstantialvarianceofamodel’sperformanceestimate.
+Thereasonisthatitdependsonwhichinstancesendupintrainingset,andwhichparticularinstances
+13endupintestset. Keepinginmindthateachtimeweresampleadataset,wealterthestatisticsofthe
+distributionofthesample. Mostsupervisedlearningalgorithmsforclassificationandregressionas
+wellastheperformanceestimatesoperateundertheassumptionthatadatasetisrepresentativeofthe
+populationthatthisdatasetsamplehasbeendrawnfrom. AsdiscussedinSection1.4,stratification
+helpswithkeepingthesampleproportionsintactuponsplittingadataset. However,thechangeinthe
+underlyingsamplestatisticsalongthefeaturesaxesisstillaproblemthatbecomesmorepronounced
+ifweworkwithsmalldatasets,whichisillustratedinFigure5.
+dlroW noitubirtsiDnoitubirtsiD1
+laeR
+tesataD
+n=100 n=1000
+Resampling
+elpmaS2
+elpmaS3
+elpmaS
+Train Test Train Test
+(70%) (30%) (70%) (30%)
+Figure5: Repeatedsubsamplingfromatwo-dimensionalGaussiandistribution.
+142.3 RepeatedHoldoutValidation
+Onewaytoobtainamorerobustperformanceestimatethatislessvarianttohowwesplitthedata
+intotrainingandtestsetsistorepeattheholdoutmethodktimeswithdifferentrandomseedsand
+computetheaverageperformanceoverthesekrepetitions:
+k
+1 (cid:88)
+ACC = ACC , (21)
+avg k j
+j=1
+whereACC istheaccuracyestimateofthejthtestsetofsizem,
+j
+m
+1 (cid:88) (cid:0) (cid:1)
+ACC =1− L yˆ,y . (22)
+j m i i
+i=1
+Thisrepeatedholdoutprocedure,sometimesalsocalledMonteCarloCross-Validation,providesa
+betterestimateofhowwellourmodelmayperformonarandomtestset,comparedtothestandard
+holdoutvalidationmethod. Also,itprovidesinformationaboutthemodel’sstability–howthemodel,
+producedbyalearningalgorithm,changeswithdifferenttrainingsetsplits. Figure6shallillustrate
+howrepeatedholdoutvalidationmaylooklikefordifferenttraining-testsplitusingtheIrisdatasetto
+fitto3-nearestneighborsclassifiers.
+50/50 Train-Test Split 90/10 Train-Test Split
+Avg. Acc. 0.95 Avg. Acc. 0.96
+Figure6: Repeatedholdoutvalidationwith3-nearestneighborclassifiersfittotheIrisdataset.
+TheleftsubplotinFigure6wasgeneratedbyperforming50stratifiedtraining/testsplitswith75
+samplesinthetestandtrainingseteach;a3-nearestneighborsmodelwasfittothetrainingsetand
+evaluatedonthetestsetineachrepetition. Theaverageaccuracyofthese5050/50splitswas95%.
+ThesameprocedurewasusedtoproducetherightsubplotinFigure6. Here,thetestsetsconsistedof
+only15sampleseachduetothe90/10splits,andtheaverageaccuracyoverthese50splitswas96%.
+Figure6demonstratestwoofthepointsthatwerepreviouslydiscussed. First,weseethatthevariance
+ofourestimateincreasesasthesizeofthetestsetdecreases. Second,weseeasmallincreaseinthe
+pessimisticbiaswhenwedecreasethesizeofthetrainingset–wewithholdmoretrainingdatainthe
+50/50split,whichmaybethereasonwhytheaverageperformanceoverthe50splitsisslightlylower
+comparedtothe90/10splits.
+The next section introduces an alternative method for evaluating a model’s performance; it will
+discussaboutdifferentflavorsofthebootstrapmethodthatarecommonlyusedtoinfertheuncertainty
+ofaperformanceestimate.
+2.4 TheBootstrapMethodandEmpiricalConfidenceIntervals
+ThepreviousexamplesofMonteCarloCross-Validationmayhaveconvincedusthatrepeatedholdout
+validationcouldprovideuswithamorerobustestimateofamodel’sperformanceonrandomtest
+sets compared to an evaluation based on a single train/test split via holdout validation (Section
+151.5). Inaddition,therepeatedholdoutmaygiveusanideaaboutthestabilityofourmodel. This
+sectionexploresanalternativeapproachtomodelevaluationandforestimatinguncertaintyusingthe
+bootstrapmethod.
+Letusassumethatwewouldliketocomputeaconfidenceintervalaroundaperformanceestimate
+to judge its certainty – or uncertainty. How can we achieve this if our sample has been drawn
+from an unknown distribution? Maybe we could use the sample mean as a point estimate of the
+populationmean,buthowwouldwecomputethevarianceorconfidenceintervalsaroundthemeanif
+itsdistributionisunknown? Sure,wecouldcollectmultiple,independentsamples;thisisaluxurywe
+oftendonothaveinrealworldapplications,though. Now,theideabehindthebootstrapistogenerate
+"newsamples"bysamplingfromanempiricaldistribution. Asasidenote,theterm"bootstrap"likely
+originatedfromthephrase"topulloneselfupbyone’sbootstraps:"
+Circa 1900, to pull (oneself) up by (one’s) bootstraps was used figuratively of
+animpossibletask(Amongthe"practicalquestions"attheendofchapteroneof
+Steele’s"PopularPhysics"schoolbook(1888)is"Whycannotamanlifthimself
+by pulling up on his boot-straps?". By 1916 its meaning expanded to include
+"better oneself by rigorous, unaided effort." The meaning "fixed sequence of
+instructionstoloadtheoperatingsystemofacomputer"(1953)isfromthenotion
+ofthefirst-loadedprogrampullingitself,andtherest,upbythebootstrap.
+[Source: OnlineEtymologyDictionary6]
+Thebootstrapmethodisaresamplingtechniqueforestimatingasamplingdistribution,andinthe
+contextofthisarticle,weareparticularlyinterestedinestimatingtheuncertaintyofaperformance
+estimate–thepredictionaccuracyorerror. ThebootstrapmethodwasintroducedbyBradleyEfron
+in1979[Efron,1992]. About15yearslater,BradleyEfronandRobertTibshiranievendevoteda
+wholebooktothebootstrap,"AnIntroductiontotheBootstrap"[EfronandTibshirani,1994],which
+isahighlyrecommendedreadforeveryonewhoisinterestedinmoredetailsonthistopic. Inbrief,
+theideaofthebootstrapmethodistogeneratenewdatafromapopulationbyrepeatedsamplingfrom
+theoriginaldatasetwithreplacement–incontrast,therepeatedholdoutmethodcanbeunderstoodas
+samplingwithoutreplacement. Walkingthroughitstepbystep,thebootstrapmethodworkslikethis:
+1. Wearegivenadatasetofsizen.
+2. Forbbootstraprounds:
+Wedrawonesingleinstancefromthisdatasetandassignittothejthbootstrapsample.
+Werepeatthisstepuntilourbootstrapsamplehassizen–thesizeoftheoriginaldataset.
+Eachtime,wedrawsamplesfromthesameoriginaldatasetsuchthatcertainexamplesmay
+appearmorethanonceinabootstrapsampleandsomenotatall.
+3. Wefitamodeltoeachofthebbootstrapsamplesandcomputetheresubstitutionaccuracy.
+4. Wecomputethemodelaccuracyastheaverageoverthebaccuracyestimates(Equation23).
+b n (cid:18) (cid:19)
+1(cid:88) 1 (cid:88) (cid:0) (cid:1)
+ACC = 1−L yˆ,y (23)
+boot b n i i
+j=1 i=1
+Asdiscussedpreviously,theresubstitutionaccuracyusuallyleadstoanextremelyoptimisticbias,
+sinceamodelcanbeoverlysensibletonoiseinadataset. Originally,thebootstrapmethodaimsto
+determinethestatisticalpropertiesofanestimatorwhentheunderlyingdistributionwasunknown
+andadditionalsamplesarenotavailable. So,inordertoexploitthismethodfortheevaluationof
+predictive models, such as hypotheses for classification and regression, we may prefer a slightly
+differentapproachtobootstrappingusingtheso-calledLeave-One-OutBootstrap(LOOB)technique.
+Here,weuseout-of-bagsamplesastestsetsforevaluationinsteadofevaluatingthemodelonthe
+trainingdata. Out-of-bagsamplesaretheuniquesetsofinstancesthatarenotusedformodelfitting
+asshowninFigure7.
+Figure7illustrateshowthreerandombootstrapsamplesdrawnfromanexemplaryten-sampledataset
+(x ,x ,...,x 0) and how the out-of-bag sample might look like. In practice, Bradley Efron and
+1 2 1
+6https://www.etymonline.com/word/bootstrap
+16Original Dataset x x x x x x x x x x
+1 2 3 4 5 6 7 8 9 10
+Bootstrap 1 x x x x x x x x x x x x x
+8 6 2 9 5 8 1 4 8 2 3 7 10
+Bootstrap 2 x x x x x x x x x x x x
+10 1 3 5 1 7 4 2 1 8 6 9
+Bootstrap 3 x x x x x x x x x x x x x x
+6 5 4 1 2 4 2 6 9 2 3 7 8 10
+Training Sets Test Sets
+Figure7: IllustrationoftrainingandtestdatasplitsintheLeave-One-OutBootstrap(LOOB).
+RobertTibshiranirecommenddrawing50to200bootstrapsamplesasbeingsufficientforproducing
+reliableestimates[EfronandTibshirani,1994].
+Takingastepback,letusassumethatasamplethathasbeendrawnfromanormaldistribution. Using
+basicconceptsfromstatistics,weusethesamplemeanx¯asapointestimateofthepopulationmean
+µ:
+n
+1 (cid:88)
+x¯= x . (24)
+n i
+i=1
+Similarly,thevarianceσ2isestimatedasfollows:
+n
+1 (cid:88)
+VAR= (x −x¯)2. (25)
+n−1 i
+i=1
+Consequently,thestandarderror(SE)iscomputedasthestandarddeviation’sestimate(SD ≈ σ)
+dividedbythesquarerootofthesamplesize:
+SD
+SE= √ . (26)
+n
+Usingthestandarderrorwecanthencomputea95%confidenceintervalofthemeanaccordingto
+σ
+x¯±z× √ , (27)
+n
+suchthat
+x¯±t×SE, (28)
+withz =1.96forthe95%confidenceinterval. SinceSDisthestandarddeviationofthepopulation
+(σ)estimatedfromthesample,wehavetoconsultat-tabletolookuptheactualvalueoft,which
+dependsonthesizeofthesample–orthedegreesoffreedomtobeprecise. Forinstance,givena
+samplewithn=100,wefindthatt =1.984.
+95
+17Similarly,wecancomputethe95%confidenceintervalofthebootstrapestimatestartingwiththe
+meanaccuracy,
+b
+1(cid:88)
+ACC = ACC , (29)
+boot b i
+i=1
+anduseittocomputethestandarderror
+(cid:118)
+(cid:117) b
+(cid:117) 1 (cid:88)
+SE =(cid:116) (ACC −ACC )2. (30)
+boot b−1 i boot
+i=1
+Here,ACC isthevalueofthestatistic(theestimateofACC)calculatedontheithbootstrapreplicate.
+i
+AndthestandarddeviationofthevaluesACC ,ACC ,...,ACC istheestimateofthestandarderror
+1 1 b
+ofACC[EfronandTibshirani,1994].
+Finally,wecanthencomputetheconfidenceintervalaroundthemeanestimateas
+ACC ±t×SE . (31)
+boot boot
+Althoughtheapproachoutlinedaboveseemsintuitive,whatcanwedoifoursamplesdonotfollowa
+normaldistribution? Amorerobust,yetcomputationallystraight-forwardapproachisthepercentile
+methodasdescribedbyB.Efron[Efron,1981].Here,wepickthelowerandupperconfidencebounds
+asfollows:
+• ACC =α thpercentileoftheACC distribution
+lower 1 boot
+• ACC =α thpercentileoftheACC distribution,
+upper 2 boot
+whereα =αandα =1−α,andαisthedegreeofconfidenceforcomputingthe100×(1−2×α)
+1 2
+confidenceinterval. Forinstance,tocomputea95%confidenceinterval,wepickα=0.025toobtain
+thethe2.5thand97.5thpercentilesofthebbootstrapsamplesdistributionasourupperandlower
+confidencebounds.
+Inpractice,ifthedataisindeed(roughly)followinganormaldistribution,the"standard"confidence
+intervalandpercentilemethodtypicallyagreeasillustratedintheFigure8.
+(cid:1) (cid:2)
+Figure8: Comparisonofthestandardandpercentilemethodforcomputingconfidenceintervals
+fromleave-one-outbootstrapsamples. SubpanelAevaluates3-nearestneighborsmodelsonIris,and
+sublpanelBshowstheresultsofsoftmaxregressionmodelsonMNIST.
+In1983,BradleyEfrondescribedthe.632Estimate,afurtherimprovementtoaddressthepessimistic
+biasofthebootstrapcross-validationapproachdescribedabove[Efron,1983]. Thepessimisticbias
+inthe"classic"bootstrapmethodcanbeattributedtothefactthatthebootstrapsamplesonlycontain
+approximately63.2%oftheuniqueexamplesfromtheoriginaldataset. Forinstance,wecancompute
+18theprobabilitythatagivenexamplefromadatasetofsizenisnotdrawnasabootstrapsampleas
+follows:
+(cid:18) 1(cid:19)n
+P(notchosen)= 1− , (32)
+n
+whichisasymptoticallyequivalentto 1 ≈0.368asn→∞.
+e
+Viceversa,wecanthencomputetheprobabilitythatasampleischosenas
+(cid:18) 1(cid:19)n
+P(chosen)=1− 1− ≈0.632 (33)
+n
+forreasonablylargedatasets,sothatweselectapproximately0.632×nuniqueexamplesasbootstrap
+training sets and reserve 0.382 × n out-of-bag examples for testing in each iteration, which is
+illustratedinFigure9.
+Figure9: Probabilityofincludinganexamplefromthedatasetinabootstrapsamplefordifferent
+datasetsizesn.
+Now,toaddressthebiasthatisduetothisthesamplingwithreplacement,BradleyEfronproposed
+the.632Estimatementionedearlier,whichiscomputedviathefollowingequation:
+b
+1(cid:88)(cid:0) (cid:1)
+ACC = 0.632·ACC +0.368·ACC , (34)
+boot b h,i r,i
+i=1
+whereACC istheresubstitutionaccuracy,andACC istheaccuracyontheout-of-bagsample.
+r,i h,i
+Now,whilethe.632Boostrapattemptstoaddressthepessimisticbiasoftheestimate,anoptimistic
+biasmayoccurwithmodelsthattendtooverfitsothatBradleyEfronandRobertTibshiraniproposed
+The.632+BootstrapMethod[EfronandTibshirani,1997].Insteadofusingafixedweightω =0.632
+in
+b
+1(cid:88)(cid:0) (cid:1)
+ACC = ω·ACC +(1−ω)·ACC , (35)
+boot b h,i r,i
+i=1
+19wecomputetheweightωas
+0.632
+ω = , (36)
+1−0.368×R
+whereRistherelativeoverfittingrate:
+(−1)×(ACC −ACC )
+R= h,i r,i . (37)
+γ−(1−ACC )
+h,i
+(SincewearepluggingωintoEquation35forcomputingACC ootthatwedefinedabove,ACC
+b h,i
+andACC stillrefertotheresubstitutionandout-of-bagaccuracyestimatesintheithbootstrap
+r,i
+round,respectively.)
+Further,weneedtodeterminetheno-informationrateγ inordertocomputeR. Forinstance,wecan
+computeγ byfittingamodeltoadatasetthatcontainsallpossiblecombinationsbetweensamplesx(cid:48)
+i
+andtargetclasslabelsy –wepretendthattheobservationsandclasslabelsareindependent:
+i
+n n
+1 (cid:88)(cid:88)
+γ = L(y ,f(x )). (38)
+n2 i i(cid:48)
+i=1i(cid:48)=1
+Alternatively,wecanestimatetheno-informationrateγ asfollows:
+K
+(cid:88)
+γ = p (1−q ), (39)
+k k
+k=1
+wherep istheproportionofclasskexamplesobservedinthedataset,andq istheproportionof
+k k
+classkexamplesthattheclassifierpredictsinthedataset.
+The OOB bootstrap, 0.632 bootstrap, and .632+ boostrap method discussed in this section are
+implementedinMLxtend[Raschka,2018]toenablecomparisonstudies.7
+Thissectioncontinuedthediscussionaroundbiasesandvariancesinevaluatingmachinelearning
+modelsinmoredetail. Further,itintroducedtherepeatedhold-outmethodthatmayprovideuswith
+somefurtherinsightsintoamodel’sstability. Then,welookedatthebootstrapmethodandexplored
+differentflavorsofthisbootstrapmethodthathelpusestimatetheuncertaintyofourperformance
+estimates. Aftercoveringthebasicsofmodelevaluationinthisandtheprevioussection,thenext
+sectionintroduceshyperparametertuningandmodelselection.
+3 Cross-validationandHyperparameterOptimization
+3.1 Overview
+Almost every machine learning algorithm comes with a large number of settings that we, the
+machinelearningresearchersandpractitioners,needtospecify. Thesetuningknobs,theso-called
+hyperparameters, help us control the behavior of machine learning algorithms when optimizing
+forperformance,findingtherightbalancebetweenbiasandvariance. Hyperparametertuningfor
+performanceoptimizationisanartinitself,andtherearenohard-and-fastrulesthatguaranteebest
+performanceonagivendataset. Theprevioussectionscoveredholdoutandbootstraptechniquesfor
+estimatingthegeneralizationperformanceofamodel.Thebias-variancetrade-offwasdiscussedinthe
+contextofestimatingthegeneralizationperformanceaswellasmethodsforcomputingtheuncertainty
+ofperformanceestimates. Thisthirdsectionfocussesondifferentmethodsofcross-validationfor
+modelevaluationandmodelselection. Itcoverscross-validationtechniquestorankmodelsfrom
+severalhyperparameterconfigurationsandestimatehowwellthesegeneralizetoindependentdatasets.
+(CodeforgeneratingthefiguresdiscussedinthissectionisavailableonGitHub8.)
+7http://rasbt.github.io/mlxtend/user_guide/evaluate/bootstrap_point632_score/
+8https://github.com/rasbt/model-eval-article-supplementary/blob/master/code/resampling-and-kfold.ipynb
+203.2 AboutHyperparametersandModelSelection
+Previously,theholdoutmethod anddifferentflavorsofthebootstrapwereintroducedtoestimate
+the generalization performance of our predictive models. We split the dataset into two parts: a
+trainingandatestdataset. Afterthemachinelearningalgorithmfitamodeltothetrainingset,we
+evaluateditontheindependenttestsetthatwewithheldfromthemachinelearningalgorithmduring
+modelfitting. Whilewewerediscussingchallengessuchasthebias-variancetrade-off, weused
+fixedhyperparametersettingsinourlearningalgorithms,suchasthenumberofkinthek-nearest
+neighborsalgorithm. Wedefinedhyperparametersastheparametersofthelearningalgorithmitself,
+whichwehavetospecifyapriori–beforemodelfitting. Incontrast,wereferredtotheparametersof
+ourresultingmodelasthemodelparameters.
+So,whatarehyperparameters,exactly? Consideringthek-nearestneighborsalgorithm,oneexample
+ofahyperparameteristheintegervalueofk(Figure10). Ifwesetk =3,thek-nearestneighbors
+algorithmwillpredictaclasslabelbasedonamajorityvoteamongthe3-nearestneighborsinthe
+trainingset. Thedistancemetricforfindingthesenearestneighborsisyetanotherhyperparameterof
+thisalgorithm.
+2
+erutaef ?
+k = 1
+k = 3
+k = 5
+feature 1
+Figure10: Illustrationofthek-nearestneighborsalgorithmwithdifferentchoicesfork.
+Now,thek-nearestneighborsalgorithmmaynotbeanidealchoiceforillustratingthedifference
+betweenhyperparametersandmodelparameters,sinceitisalazylearnerandanonparametricmethod.
+Inthiscontext,lazylearning(orinstance-basedlearning)meansthatthereisnotrainingormodel
+fittingstage: Ak-nearestneighborsmodelliterallystoresormemorizesthetrainingdataandusesit
+onlyatpredictiontime. Thus,eachtraininginstancerepresentsaparameterinthek-nearestneighbors
+model. Inshort,nonparametricmodelsaremodelsthatcannotbedescribedbyafixednumberof
+parameters that are being adjusted to the training set. The structure of parametric models is not
+decidedbythetrainingdataratherthanbeingsetapriori;nonparamtricmodelsdonotassumethatthe
+datafollowscertainprobabilitydistributionsunlikeparametricmethods(exceptionsofnonparametric
+methodsthatmakesuchassumptionsareBayesiannonparametricmethods). Hence,wemaysaythat
+nonparametricmethodsmakefewerassumptionsaboutthedatathanparametricmethods.
+Incontrasttok-nearestneighbors,asimpleexampleofaparametricmethodislogisticregression,
+ageneralizedlinearmodelwithafixednumberofmodelparameters: aweightcoefficientforeach
+featurevariableinthedatasetplusabias(orintercept)unit. Theseweightcoefficientsinlogistic
+21regression,themodelparameters,areupdatedbymaximizingalog-likelihoodfunctionorminimizing
+thelogisticcost. Forfittingamodeltothetrainingdata,ahyperparameterofalogisticregression
+algorithmcouldbethenumberofiterationsorpassesoverthetrainingset(epochs)ingradient-based
+optimization. Anotherexampleofahyperparameterwouldbethevalueofaregularizationparameter
+suchasthelambda-terminL2-regularizedlogisticregression(Figure11).
+Figure11: Conceptualoverviewoflogisticregression.
+Changingthehyperparametervalueswhenrunningalearningalgorithmoveratrainingsetmayresult
+indifferentmodels. Theprocessoffindingthebest-performingmodelfromasetofmodelsthatwere
+producedbydifferenthyperparametersettingsiscalledmodelselection. Thenextsectionintroduces
+anextensiontotheholdoutmethodthatisusefulwhencarryingoutthisselectionprocess.
+3.3 TheThree-WayHoldoutMethodforHyperparameterTuning
+Section1providedanexplanationwhyresubstitutionvalidationisabadapproachforestimatingof
+thegeneralizationperformance. Sincewewanttoknowhowwellourmodelgeneralizestonewdata,
+weusedtheholdoutmethodtosplitthedatasetintotwoparts,atrainingsetandanindependenttest
+set. Canweusetheholdoutmethodforhyperparametertuning? Theansweris"yes."However,we
+havetomakeaslightmodificationtoourinitialapproach,the"two-way"split,andsplitthedataset
+intothreeparts: atraining,avalidation,andatestset.
+Theprocessofhyperparametertuning(orhyperparameteroptimization)andmodelselectioncanbe
+regardedasameta-optimizationtask. Whilethelearningalgorithmoptimizesanobjectivefunction
+on the training set (with exception to lazy learners), hyperparameter optimization is yet another
+taskontopofit; here, wetypicallywanttooptimizeaperformancemetricsuchasclassification
+accuracyortheareaunderaReceiverOperatingCharacteristiccurve. Afterthetuningstage,selecting
+amodelbasedonthetestsetperformanceseemstobeareasonableapproach. However,reusingthe
+testsetmultipletimeswouldintroduceabiasandthefinalperformanceestimateandlikelyresult
+inoverlyoptimisticestimatesofthegeneralizationperformance–onemightsaythat"thetestset
+leaksinformation."Toavoidthisproblem,wecoulduseathree-waysplit,dividingthedatasetintoa
+training,validation,andtestdataset. Havingatraining-validationpairforhyperparametertuningand
+modelselectionsallowsustokeepthetestset"independent"formodelevaluation. Oncemore,letus
+recallthe"3goals"ofperformanceestimation:
+221. Wewanttoestimatethegeneralizationaccuracy,thepredictiveperformanceofamodelon
+future(unseen)data.
+2. Wewanttoincreasethepredictiveperformancebytweakingthelearningalgorithmand
+selectingthebest-performingmodelfromagivenhypothesisspace.
+3. Wewanttoidentifythemachinelearningalgorithmthatisbest-suitedfortheproblemat
+hand;thus,wewanttocomparedifferentalgorithms,selectingthebest-performingoneas
+wellasthebest-performingmodelfromthealgorithm’shypothesisspace.
+The"three-wayholdoutmethod"isonewaytotacklepoints1and2(moreonpoint3inSection
+4). Though,ifweareonlyinterestedinpoint2,selectingthebestmodel,anddonotcaresomuch
+aboutan"unbiased"estimateofthegeneralizationperformance,wecouldsticktothetwo-waysplit
+formodelselection. Thinkingbackofourdiscussionaboutlearningcurvesandpessimisticbiases
+in Section 2, we noted that a machine learning algorithm often benefits from more labeled data;
+thesmallerthedataset,thehigherthepessimisticbiasandthevariance–thesensitivityofamodel
+towardsthedataispartitioned.
+"Thereain’tnosuchthingasafreelunch."Thethree-wayholdoutmethodforhyperparametertuning
+andmodelselectionisnottheonly–andcertainlyoftennotthebest–waytoapproachthistask.Later
+sections,willintroducealternativemethodsanddiscusstheiradvantagesandtrade-offs. However,
+beforewemoveontotheprobablymostpopularmethodformodelselection,k-foldcross-validation
+(orsometimesalsocalled"rotationestimation"inolderliterature),letushavealookatanillustration
+ofthe3-waysplitholdoutmethodinFigure12.
+LetuswalkthroughFigure12stepbystep.
+Step1. Westartbysplittingourdatasetintothreeparts,atrainingsetformodelfitting,avalidation
+setformodelselection,andatestsetforthefinalevaluationoftheselectedmodel.
+Step2. Thisstepillustratesthehyperparametertuningstage. Weusethelearningalgorithmwith
+differenthyperparametersettings(here: three)tofitmodelstothetrainingdata.
+Step3. Next,weevaluatetheperformanceofourmodelsonthevalidationset. Thisstepillustrates
+themodelselectionstage;aftercomparingtheperformanceestimates,wechoosethehyperparameters
+settings associated with the best performance. Note that we often merge steps two and three in
+practice: wefitamodelandcomputeitsperformancebeforemovingontothenextmodelinorderto
+avoidkeepingallfittedmodelsinmemory.
+Step4. Asdiscussedearlier, theperformanceestimatesmaysufferfrompessimisticbiasifthe
+trainingsetistoosmall. Thus,wecanmergethetrainingandvalidationsetaftermodelselectionand
+usethebesthyperparametersettingsfromtheprevioussteptofitamodeltothislargerdataset.
+Step5. Now,wecanusetheindependenttestsettoestimatethegeneralizationperformanceour
+model. Rememberthatthepurposeofthetestsetistosimulatenewdatathatthemodelhasnot
+seenbefore. Re-usingthistestsetmayresultinanoveroptimisticbiasinourestimateofthemodel’s
+generalizationperformance.
+Step6. Finally,wecanmakeuseofallourdata–mergingtrainingandtestset–andfitamodelto
+alldatapointsforreal-worlduse.
+Notethatfittingthemodelonallavailabledatamightyieldamodelthatislikelyslightlydifferent
+from the model evaluated in Step 5. However, in theory, using all data (that is, training and test
+data)tofitthemodelshouldonlyimproveitsperformance. Underthisassumption,theevaluated
+performancefromStep5mightslightlyunderestimatetheperformanceofthemodelfittedinStep
+6. (Ifweusetestdataforfitting,wedonothavedatalefttoevaluatethemodel,unlesswecollect
+newdata.) Inreal-worldapplications,havingthe"bestpossible"modelisoftendesired–orinother
+words,wedonotmindifweslightlyunderestimateditsperformance. Inanycase,wecanregardthis
+sixthstepasoptional.
+23Training Data
+Training Labels
+Data Val Did aa tt aion
+1
+Labels Validation
+Labels
+Test
+Data
+Test
+Labels
+Hyperparameter Model
+values
+Training Data Learning
+2 Hype vrp ala ur ea smeter Algorithm Model
+Training Labels
+Model
+Hyperparameter
+values
+Validation
+Data Prediction
+Performance
+Model Validation
+Labels
+Best
+Hyperparameter
+values
+Validation
+Data Prediction
+3 Performance Best
+Model Validation Model
+Labels
+Validation
+Data Prediction
+Performance
+Model Validation
+Labels
+Best
+Hyperparameter
+Training Data Val Did aa tt aion Values
+4 Model
+Training Labels Validation Learning
+Labels
+Algorithm
+Test Data
+Prediction
+5 Performance
+Model
+Test Labels
+Best
+Hyperparameter
+6 Data Values Final
+Labels Learning Model
+Algorithm
+Figure12: Illustrationofthethree-wayholdoutmethodforhyperparametertuning.
+3.4 Introductiontok-foldCross-Validation
+Itisabouttimetointroducetheprobablymostcommontechniqueformodelevaluationandmodel
+selectioninmachinelearningpractice: k-foldcross-validation. Thetermcross-validationisused
+looselyinliterature,wherepractitionersandresearcherssometimesrefertothetrain/testholdout
+method as a cross-validation technique. However, it might make more sense to think of cross-
+24validationasacrossingoveroftrainingandvalidationstagesinsuccessiverounds. Here,themain
+ideabehindcross-validationisthateachsampleinourdatasethastheopportunityofbeingtested.
+k-foldcross-validationisaspecialcaseofcross-validationwhereweiterateoveradatasetsetktimes.
+Ineachround,wesplitthedatasetintok parts: onepartisusedforvalidation,andtheremaining
+k−1partsaremergedintoatrainingsubsetformodelevaluationasshowninFigure13,which
+illustratestheprocessof5-foldcross-validation.
+A
+Validation Training
+Fold Fold
+1st Performance1
+)sdloF-K(
+2nd Performance2
+snoitaretI 3rd Performance3 Performance
+5
+= 1 ∑
+5 =1Performancei
+4th Performance4 i
+K
+5th Performance5
+B C
+Training Fold Data
+Prediction
+Validation
+Training Fold Labels Fold Data
+Performance
+Model
+Hyperparameter
+Values Validation
+Fold Labels
+Learning
+Algorithm
+Model
+Figure13: Illustrationofthek-foldcross-validationprocedure.
+Just as in the "two-way" holdout method (Section 1.5), we use a learning algorithm with fixed
+hyperparametersettingstofitmodelstothetrainingfoldsineachiterationwhenweusethek-fold
+cross-validationmethodformodelevaluation. In5-foldcross-validation,thisprocedurewillresult
+infivedifferentmodelsfitted;thesemodelswerefittodistinctyetpartlyoverlappingtrainingsets
+and evaluated on non-overlapping validation sets. Eventually, we compute the cross-validation
+performanceasthearithmeticmeanoverthekperformanceestimatesfromthevalidationsets.
+We saw the main difference between the "two-way" holdout method and k-fold cross validation:
+k-foldcross-validationusesalldatafortrainingandtesting.Theideabehindthisapproachistoreduce
+thepessimisticbiasbyusingmoretrainingdataincontrasttosettingasidearelativelylargeportion
+ofthedatasetastestdata. Andincontrasttotherepeatedholdoutmethod,whichwasdiscussedin
+Section2,testfoldsink-foldcross-validationarenotoverlapping. Inrepeatedholdout,therepeated
+useofsamplesfortestingresultsinperformanceestimatesthatbecomedependentbetweenrounds;
+25thisdependencecanbeproblematicforstatisticalcomparisons,whichwewillbediscussedinSection
+4. Also,k-foldcross-validationguaranteesthateachsampleisusedforvalidationincontrasttothe
+repeatedholdout-method,wheresomesamplesmayneverbepartofthetestset.
+Thissectionintroducedk-foldcross-validationformodelevaluation. Inpractice,however,k-fold
+cross-validationismorecommonlyusedformodelselectionoralgorithmselection. k-foldcross-
+validationformodelselectionisatopicthatwewillbecoveredinthenextsections,andalgorithm
+selectionwillbediscussedindetailthroughoutSection4.
+3.5 SpecialCases: 2-FoldandLeave-One-OutCross-Validation
+Atthispoint, youmaywonderwhyk = 5waschosentoillustratek-foldcross-validationinthe
+previoussection. Onereasonisthatitmakesiteasiertoillustratek-foldcross-validationcompactly.
+Moreover, k = 5isalsoacommonchoiceinpractice, sinceitiscomputationallylessexpensive
+comparedtolargervaluesofk. Ifk istoosmall,though,thepessimisticbiasoftheperformance
+estimatemayincrease(sincelesstrainingdataisavailableformodelfitting),andthevarianceofthe
+estimatemayincreaseaswellsincethemodelismoresensitivetohowthedatawassplit(inthenext
+sections,experimentswillbediscussedthatsuggestk =10asagoodchoicefork).
+Infact,therearetwoprominent,specialcasesofk-foldcrossvalidation: k = 2andk = n. Most
+literature describes 2-fold cross-validation as being equal to the holdout method. However, this
+statement would only be true if we performed the holdout method by rotating the training and
+validation set in two rounds (for instance, using exactly 50% data for training and 50% of the
+examplesforvalidationineachround,swappingthesesets,repeatingthetrainingandevaluation
+procedure,andeventuallycomputingtheperformanceestimateasthearithmeticmeanofthetwo
+performanceestimatesonthevalidationsets). Givenhowtheholdoutmethodismostcommonly
+usedthough,thisarticledescribestheholdoutmethodand2-foldcross-validationastwodifferent
+processesasillustratedinFigure14.
+Now, if we set k = n, that is, if we set the number of folds as being equal to the number of
+traininginstances,werefertothek-foldcross-validationprocessasLeave-One-OutCross-Validation
+(LOOCV),whichisillustratedinFigure15. IneachiterationduringLOOCV,wefitamodelton−1
+samplesofthedatasetandevaluateitonthesingle,remainingdatapoint. Althoughthisprocessis
+computationallyexpensive,giventhatwehaveniterations,itcanbeusefulforsmalldatasets,cases
+wherewithholdingdatafromthetrainingsetwouldbetoowasteful.
+Severalstudiescompareddifferentvaluesofkink-foldcross-validation,analyzinghowthechoice
+ofkaffectsthevarianceandthebiasoftheestimate. Unfortunately,thereisnoFreeLunchthoughas
+shownbyYohsuaBengioandYvesGrandvaletin"Nounbiasedestimatorofthevarianceofk-fold
+cross-validation:"
+Themaintheoremshowsthatthereexistsnouniversal(validunderalldistributions)
+unbiasedestimatorofthevarianceofk-foldcross-validation.
+[BengioandGrandvalet,2004]
+However,wemaystillbeinterestedinfindinga"sweetspot,"avalueforkthatseemstobeagood
+trade-offbetweenvarianceandbiasinmostcases,andthebias-variancetrade-offdiscussionwill
+becontinuedinthenextsection. Fornow,letusconcludethissectionbylookingataninteresting
+research project where Hawkins and others compared performance estimates via LOOCV to the
+holdoutmethodandrecommendtheLOOCVoverthelatter–ifcomputationallyfeasible:
+[...] whereavailablesamplesizesaremodest,holdingbackcompoundsformodel
+testingisill-advised. Thisfragmentationofthesampleharmsthecalibrationand
+doesnotgiveatrustworthyassessmentoffitanyway. Itisbettertousealldata
+for the calibration step and check the fit by cross-validation, making sure that
+thecross-validationiscarriedoutcorrectly. [...] Theonlymotivationtorelyon
+theholdoutsampleratherthancross-validationwouldbeiftherewasreasonto
+thinkthecross-validationnottrustworthy–biasedorhighlyvariable. Butneither
+theoreticalresultsnortheempiricresultssketchedheregiveanyreasontodisbelieve
+thecross-validationresults.
+[Hawkinsetal.,2003]
+26Training Evaluation
+1 2 3 4 5 6 7 8 9 10 Holdout Method
+1 2 3 4 5 6 7 8 9 10
+2-Fold Cross-Validation
+1 2 3 4 5 6 7 8 9 10
+1 2 3 4 5 6 7 8 9 10
+1 2 3 4 5 6 7 8 9 10
+Repeated Holdout
+1 2 3 4 5 6 7 8 9 10
+1 2 3 4 5 6 7 8 9 10
+...
+Figure14: Comparisonoftheholdoutmethod,2-foldcross-validation,andtherepeatedholdout
+method.
+Table1: SummaryofthefindingsfromtheLOOCVvs. holdoutcomparisonstudyconductedby
+Hawkinsandothers[Hawkinsetal.,2003]. Seetextfordetails.
+Experiment Mean Standarddeviation
+TrueR2—q2 0.010 0.149
+TrueR2—hold50 0.028 0.184
+TrueR2—hold20 0.055 0.305
+TrueR2—hold10 0.123 0.504
+Theconclusionsinthepreviousquotationarepartlybasedontheexperimentscarriedoutinthisstudy
+usinga469-sampledataset,andTable1summarizesthefindingsinacomparisonofdifferentRidge
+RegressionmodelsevaluatedbyLOOCVandtheholdoutmethod[Hawkinsetal.,2003]. Thefirst
+rowcorrespondstoanexperimentwheretheresearchersusedLOOCVtofitregressionmodelsto
+100-exampletrainingsubsets. Thereported"mean"referstotheaverageddifferencebetweenthetrue
+coefficientsofdetermination(R2)andthecoefficientsobtainedviaLOOCV(herecalledq2)after
+repeatingthisprocedureondifferent100-exampletrainingsetsandaveragingtheresults. Inrows
+2-4,theresearchersusedtheholdoutmethodforfittingmodelstothe100-exampletrainingsets,and
+theyevaluatedtheperformancesonholdoutsetsofsizes10,20,and50samples. Eachexperiment
+wasrepeated75times,andthemeancolumnshowstheaveragedifferencebetweentheestimatedR2
+andthetrueR2values. Aswecansee,theestimatesobtainedviaLOOCV(q2)aretheclosesttothe
+trueR2onaverage. Theestimatesobtainedfromthe50-exampletestsetviatheholdoutmethodare
+alsopassable,though. Basedontheseparticularexperiments,wemayagreewiththeresearchers’
+conclusion:
+27Training evaluation
+1 2 3 4 5 6 7 8 9 10
+1 2 3 4 5 6 7 8 9 10
+1 2 3 4 5 6 7 8 9 10
+1 2 3 4 5 6 7 8 9 10
+1 2 3 4 5 6 7 8 9 10
+1 2 3 4 5 6 7 8 9 10
+1 2 3 4 5 6 7 8 9 10
+1 2 3 4 5 6 7 8 9 10
+1 2 3 4 5 6 7 8 9 10
+1 2 3 4 5 6 7 8 9 10
+Figure15: Illustrationofleave-one-outcross-validation.
+Takingthethirdofthesepoints, ifyouhave150ormorecompoundsavailable,
+thenyoucancertainlymakearandomsplitinto100forcalibrationand50ormore
+fortesting. Howeveritishardtoseewhyyouwouldwanttodothis.
+[Hawkinsetal.,2003]
+Onereasonwhywemayprefertheholdoutmethodmaybeconcernsaboutcomputationalefficiency,
+ifthedatasetissufficientlylarge. Asaruleofthumb,wecansaythatthepessimisticbiasandlarge
+varianceconcernsarelessproblematicthelargerthedataset. Moreover,itisnotuncommontorepeat
+thek-foldcross-validationprocedurewithdifferentrandomseedsinhopetoobtaina"morerobust"
+estimate. Forinstance,ifwerepeateda5-foldcross-validationrun100times,wewouldcompute
+theperformanceestimatefor500testfoldsreportthecross-validationperformanceasthearithmetic
+meanofthese500folds. (Althoughthisiscommonlydoneinpractice,wenotethatthetestfoldsare
+nowoverlapping.) However,thereisnopointinrepeatingLOOCV,sinceLOOCValwaysproduces
+thesamesplits.
+3.6 k-foldCross-ValidationandtheBias-VarianceTrade-off
+BasedonthestudybyHawkinsandothers[Hawkinsetal.,2003]discussedinSection3.5wemay
+preferLOOCVoversingletrain/testsplitsviatheholdoutmethodforsmallandmoderatelysized
+datasets. Inaddition,wecanthinkoftheLOOCVestimateasbeingapproximatelyunbiased: the
+pessimisticbiasofLOOCV(k =n)isintuitivelylowercomparedk <n-foldcross-validation,since
+almostall(forinstance,n−1)trainingsamplesareavailableformodelfitting.
+While LOOCV is almost unbiased, one downside of using LOOCV over k-fold cross-validation
+withk < nisthelargevarianceoftheLOOCVestimate. First, wehavetonotethatLOOCVis
+defect when using a discontinuous loss-function such as the 0-1 loss in classification or even in
+continuouslossfunctionssuchasthemean-squared-error. ItissaidthatLOOCV"[LOOCVhas]high
+variancebecausethetestsetonlycontainsonesample"[Tanetal.,2005]and"[LOOCV]ishighly
+variable,sinceitisbaseduponasingleobservation(x1,y1)"[Jamesetal.,2013]. Thesestatements
+arecertainlytrueifwerefertothevariancebetweenfolds. Rememberthatifweusethe0-1loss
+28function(thepredictioniseithercorrectornot),wecouldconsidereachpredictionasaBernoulli
+trial, andthenumberofcorrectpredictionsX iffollowingabinomialdistributionX ≈ B(n,p),
+wheren∈Nandp∈[0,1];thevarianceofabinomialdistributionisdefinedas
+σ2 =np(1−p) (40)
+Wecanestimatethevariabilityofastatistic(here: theperformanceofthemodel)fromthevariability
+ofthatstatisticbetweensubsamples. Obviouslythough,thevariancebetweenfoldsisapoorestimate
+ofthevarianceoftheLOOCVestimate–thevariabilityduetorandomnessinourtrainingdata. Now,
+whenwearetalkingaboutthevarianceofLOOCV,wetypicallymeanthedifferenceintheresults
+thatwewouldgetifwerepeatedtheresamplingproceduremultipletimesondifferentdatasamples
+fromtheunderlyingdistribution. InthiscontextinterestingpointhasbeenmadebyHastie,Tibshirani,
+andFriedman:
+Withk =n,thecross-validationestimatorisapproximatelyunbiasedforthetrue
+(expected)predictionerror,butcanhavehighvariancebecausethen"trainingsets"
+aresosimilartooneanother.
+[Hastieetal.,2009]
+Orinotherwords,wecanattributethehighvariancetothewell-knownfactthatthemeanofhighly
+correlatedvariableshasahighervariancethanthemeanofvariablesthatarenothighlycorrelated.
+Maybe,thiscanintuitivelybeexplainedbylookingattherelationshipbetweencovariance(cov)and
+variance(σ2):
+cov =σ2 . (41)
+X,X X
+or
+cov =E(cid:2) (X−µ)2(cid:3) =σ2 (42)
+X,X X
+ifweletµ=E(X).
+Andtherelationshipbetweencovariancecov andcorrelationρ (XandYarerandomvariables)
+X,Y X,Y
+isdefinedas
+cov =ρ σ σ , (43)
+X,Y X,Y X Y
+where
+cov =E[(X−µ )(Y −µ )] (44)
+X,Y X Y
+and
+ρ =E[(X−µ )(Y −µ )]/(σ σ ). (45)
+X,Y X Y X Y
+ThelargevariancethatisoftenassociatedwithLOOCVhasalsobeenobservedinempiricalstudies
+[Kohavi,1995].
+NowthatweestablishedthatLOOCVestimatesaregenerallyassociatedwithalargevarianceanda
+smallbias,howdoesthismethodcomparetok-foldcross-validationwithotherchoicesforkandthe
+bootstrapmethod? Section2discussedthepessimisticbiasofthestandardbootstrapmethod,where
+thetrainingsetasymptotically(only)contains0.632ofthesamplesfromtheoriginaldataset;2-or
+3-foldcross-validationhasaboutthesameproblem(the.632bootstrapthatwasdesignedtoaddress
+thispessimisticbiasissue). However,Kohavialsoobservedinhisexperiments[Kohavi,1995]that
+thebiasinbootstrapwasstillextremelylargeforcertainreal-worlddatasets(now, optimistically
+biased)comparedtok-foldcross-validation. Eventually,Kohavi’sexperimentsonvariousreal-world
+datasets suggest that 10-fold cross-validation offers the best trade-off between bias and variance.
+29Furthermore,otherresearchersfoundthatrepeatingk-foldcross-validationcanincreasetheprecision
+oftheestimateswhilestillmaintainingasmallbias[Molinaroetal.,2005,Kim,2009].
+Beforemovingontomodelselectioninthenextsection,thefollowingpointsshallsummarizethe
+discussionofthebias-variancetrade-off,bylistingthegeneraltrendswhenincreasingthenumberof
+foldsork:
+• Thebiasoftheperformanceestimatordecreases(moreaccurate)
+• Thevarianceoftheperformanceestimatorsincreases(morevariability)
+• Thecomputationalcostincreases(moreiterations,largertrainingsetsduringfitting)
+• Exception: decreasingthevalueofkink-foldcross-validationtosmallvalues(forexample,
+2or3)alsoincreasesthevarianceonsmalldatasetsduetorandomsamplingeffects.
+3.7 ModelSelectionviak-foldCross-Validation
+Previoussectionsintroducedk-foldcross-validationformodelevaluation.Now,thissectiondiscusses
+howtousethek-foldcross-validationmethodformodelselection. Again,thekeyideaistokeep
+anindependenttestdataset,thatwewithholdfromduringtrainingandmodelselection,toavoidthe
+leakingoftestdatainthetrainingstage. ThisprocedureisoutlinedinFigure16.
+AlthoughFigure16mightseemcomplicatedatfirst,theprocessisquitesimpleandanalogousto
+the"three-wayholdout"workflowthatwediscussedatthebeginningofthisarticle. Thefollowing
+paragraphswilldiscussFigure16stepbystep.
+Step 1. Similar to the holdout method, we split the dataset into two parts, a training and an
+independenttestset;wetuckawaythetestsetforthefinalmodelevaluationstepattheend(Step4).
+Step2. Inthissecondstep,wecannowexperimentwithvarioushyperparametersettings;wecould
+useBayesianoptimization,randomizedsearch,orgridsearch,forexample. Foreachhyperparameter
+configuration,weapplythek-foldcross-validationmethodonthetrainingset,resultinginmultiple
+modelsandperformanceestimates.
+Step 3. Taking the hyperparameter settings that produced the best results in the k-fold cross-
+validationprocedure,wecanthenusethecompletetrainingsetformodelfittingwiththesesettings.
+Step4. Now,weusetheindependenttestsetthatwewithheldearlier(Step1);weusethistestset
+toevaluatethemodelthatweobtainedfromStep3.
+Step5. Finally,afterwecompletedtheevaluationstage,wecanoptionallyfitamodeltoalldata
+(trainingandtestdatasetscombined),whichcouldbethemodelfor(theso-called)deployment.
+3.8 ANoteAboutModelSelectionandLargeDatasets
+Whenwebrowsethedeeplearningliterature,weoftenfindthatthatthe3-wayholdoutmethodis
+the method of choice when it comes to model evaluation; it is also common in older (non-deep
+learningliterature)aswell. Asmentionedearlier,thethree-wayholdoutmaybepreferredoverk-fold
+cross-validationsincetheformeriscomputationallycheapincomparison. Asidefromcomputational
+efficiencyconcerns, weonlyusedeeplearningalgorithmswhenwehaverelativelylargesample
+sizesanyway,scenarioswherewedonothavetoworryabouthighvariance–thesensitivityofour
+estimatestowardshowwesplitthedatasetfortraining,validation,andtesting–somuch. Thus,itis
+finetousetheholdoutmethodwithatraining,validation,andtestsplitoverthek-foldcross-validation
+formodelselectionifthedatasetisrelativelylarge.
+3.9 ANoteAboutFeatureSelectionDuringModelSelection
+Notethatifwenormalizedataorselectfeatures,wetypicallyperformtheseoperationsinsidethe
+k-foldcross-validationloopincontrasttoapplyingthesestepstothewholedatasetupfrontbefore
+splittingthedataintofolds.Featureselectioninsidethecross-validationloopreducesthebiasthrough
+30Training Data
+Training Labels
+Data
+1
+Labels
+Test Data
+Test Labels
+Hyperparameter
+Performance
+values
+Training Data Learning
+2 Hype vrp ala ur ea smeter Algorithm Performance
+Training Labels
+Hyperparameter Performance
+values
+Best
+Hyperparameter
+Training Data Values
+3 Model
+Training Labels Learning
+Algorithm
+Test Data
+Prediction
+4 Performance
+Model
+Test Labels
+Best
+Hyperparameter
+5 Data Values Final
+Labels Learning Model
+Algorithm
+Figure16: Illustrationofk-foldcross-validationformodelselection.
+overfitting,sinceitavoidspeakingatthetestdatainformationduringthetrainingstage. However,
+featureselectioninsidethecross-validationloopmayleadtoanoverlypessimisticestimate,since
+lessdataisavailablefortraining. Amoredetaileddiscussiononthistopic,whethertoperformfeature
+selectioninsideoroutsidethecross-validationloop,canbefoundinRefaeilzadeh’s"Oncomparison
+offeatureselectionalgorithms"[Refaeilzadehetal.,2007].
+313.10 TheLawofParsimony
+Nowthatwediscussedmodelselectionintheprevioussection,letustakeamomentandconsiderthe
+LawofParsimony,whichisalsoknownasOccam’sRazor: "Amongcompetinghypotheses,theone
+withthefewestassumptionsshouldbeselected."Inmodelselectionpractice,Occam’srazorcanbe
+applied,forexample,byusingtheone-standarderrormethod[Breimanetal.,1984]asfollows:
+1. Considerthenumericallyoptimalestimateanditsstandarderror.
+2. Selectthemodelwhoseperformanceiswithinonestandarderrorofthevalueobtainedin
+step1.
+Although,wemayprefersimplermodelsforseveralreasons,PedroDomingosmadeagoodpoint
+regardingtheperformanceof"complex"models. Hereisanexcerptfromhisarticle,"TenMyths
+AboutMachineLearning9:"
+Simplermodelsaremoreaccurate. ThisbeliefissometimesequatedwithOccam’s
+razor, buttherazoronlysaysthatsimplerexplanationsarepreferable, notwhy.
+They’re preferable because they’re easier to understand, remember, and reason
+with. Sometimesthesimplesthypothesisconsistentwiththedataislessaccurate
+forpredictionthanamorecomplicatedone. Someofthemostpowerfullearning
+algorithms output models that seem gratuitously elaborate? – sometimes even
+continuingtoaddtothemafterthey’veperfectlyfitthedata–butthat’showthey
+beatthelesspowerfulones.
+Again,thereareseveralreasonswhywemaypreferasimplermodelifitsperformanceiswithina
+certain,acceptablerange–forexample,usingtheone-standarderrormethod. Althoughasimpler
+model may not be the most "accurate" one, it may be computationally more efficient, easier to
+implement,andeasiertounderstandandreasonwithcomparedtomorecomplicatedalternatives.
+Toseehowtheone-standarderrormethodworksinpractice,letusconsiderasimpletoydataset: 300
+trainingexamples,concentriccircles,andauniformclassdistribution(150samplesfromclass1and
+150samplesfromclass2).
+Figure17: Concentriccirclesdatasetwith210trainingexamplesanduniformclassdistribution.
+Theconcentriccirclesdatasetisthensplitintotwoparts,70%trainingdataand30%testdata,using
+stratification to maintain equal class proportions. The 210 samples from the training dataset are
+showninFigure17.
+9https://medium.com/@pedromdd/ten-myths-about-machine-learning-d888b48334a3
+32Now,letusassumethatourgoalistooptimizetheγ (gamma)hyperparameterofaSupportVector
+Machine(SVM)withanon-linearRadialBasisFunction-kernel(RBF-kernel),whereγ isthefree
+parameteroftheGaussianRBF:
+K(x ,x )=exp(−γ||x −x ||2),γ >0. (46)
+i j i j
+(Intuitively,wecanthinkofγ asaparameterthatcontrolstheinfluenceofsingletrainingsampleson
+thedecisionboundary.)
+AfterrunningtheRBF-kernelSVMalgorithmwithdifferentγ valuesoverthetrainingset,using
+stratified 10-fold cross-validation, the performance estimates shown in Figure 18 were obtained,
+wheretheerrorbarsarethestandarderrorsofthecross-validationestimates.
+= 0.001
+= 0.1 = 10.0
+Figure18:PerformanceestimatesanddecisionregionsofanRBF-kernelSVMwithstratified10-fold
+cross-validationfordifferentγ values. Errorbarsrepresentthestandarderrorofthecross-validation
+estimates.
+AsshowninFigure18,Choosingγ valuesbetween0.1and100resultedinapredictionaccuracy
+of 80% or more. Furthermore, we can see that γ = 10.0 resulted in a fairly complex decision
+boundary, and γ = 0.001 resulted in a decision boundary that is too simple to separate the two
+classesintheconcentriccirclesdataset. Infact,γ =0.1seemslikeagoodtrade-offbetweenthetwo
+aforementionedmodels(γ =10.0andγ =0.1)–theperformanceofthecorrespondingmodelfalls
+withinonestandarderrorofthebestperformingmodelwithγ =0orγ =10.
+3.11 Summary
+Therearemanywaysforevaluatingthegeneralizationperformanceofpredictivemodels. Sofar,
+thisarticlecoveredtheholdoutmethod,differentflavorsofthebootstrapapproach,andk-foldcross-
+validation.Usingholdoutmethodisabsolutelyfineformodelevaluationwhenworkingwithrelatively
+largesamplesizes. Forhyperparameteroptimization,wemayprefer10-foldcross-validation,and
+Leave-One-Out cross-validation is a good option when working with small sample sizes. When
+itcomestomodelselection, again, the"three-way"holdoutmethodmaybeagoodchoiceifthe
+33datasetislarge, ifcomputationalefficiencyisaconcern; agoodalternativeisusingk-foldcross-
+validationwithanindependenttestset. Whiletheprevioussectionsfocusedonmodelevaluation
+andhyperparameteroptimization,Section4introducesdifferenttechniquesforcomparingdifferent
+learningalgorithms.
+Thenextsectionwilldiscussdifferentstatisticalmethodsforcomparingtheperformanceofdifferent
+modelsaswellasempiricalapproachesforcomparingdifferentmachinelearningalgorithms.
+4 AlgorithmComparison
+4.1 Overview
+Thisfinalsectioninthisarticlepresentsoverviewsofseveralstatisticalhypothesistestingapproaches,
+withapplicationstomachinelearningmodelandalgorithmcomparisons. Thisincludesstatistical
+testsbasedontargetpredictionsforindependenttestsets(thedownsidesofusingasingletestsetfor
+modelcomparisonswasdiscussedinprevioussections)aswellasmethodsforalgorithmcomparisons
+byfittingandevaluatingmodelsviacross-validation. Lastly,thisfinalsectionwillintroducenested
+cross-validation,whichhasbecomeacommonandrecommendedamethodofchoiceforalgorithm
+comparisonsforsmalltomoderately-sizeddatasets.
+Then,attheendofthisarticle,Iprovidealistofmypersonalsuggestionsconcerningmodelevaluation,
+selection,andalgorithmselectionsummarizingtheseveraltechniquescoveredinthisseriesofarticles.
+4.2 TestingtheDifferenceofProportions
+Thereareseveraldifferentstatisticalhypothesistestingframeworksthatarebeingusedinpracticeto
+comparetheperformanceofclassificationmodels,includingconventionalmethodssuchasdifference
+of two proportions (here, the proportions are the estimated generalization accuracies from a test
+set), for which we can construct 95% confidence intervals based on the concept of the Normal
+ApproximationtotheBinomialthatwascoveredinSection1.
+Performingaz-scoretestfortwopopulationproportionsisinarguablythemoststraight-forwardway
+tocomparetomodels(butcertainlynotthebest!): Inanutshell,ifthe95%confidenceintervalsof
+theaccuraciesoftwomodelsdonotoverlap,wecanrejectthenullhypothesisthattheperformance
+of both classifiers is equal at a confidence level of α = 0.05 (or 5% probability). Violations of
+assumptionsaside(forinstancethatthetestsetsamplesarenotindependent),asThomasDietterich
+notedbasedonempiricalresultsinasimulatedstudy[Dietterich,1998],thistesttendstohaveahigh
+falsepositiverate(here: incorrectlydetectingdifferencewhenthereisnone),whichisamongthe
+reasonswhyitisnotrecommendedinpractice.
+Nonetheless,forthesakeofcompleteness,andsinceitacommonlyusedmethodinpractice,the
+generalprocedureisoutlinedbelowasfollows(whichalsogenerallyappliestothedifferenthypothesis
+testspresentedlater):
+1. formulate the hypothesis to be tested (for instance, the null hypothesis stating that the
+proportionsarethesame;consequently,thealternativehypothesisthattheproportionsare
+different,ifweuseatwo-tailedtest);
+2. decideuponasignificancethreshold(forinstance,iftheprobabilityofobservingadifference
+moreextremethantheoneseenismorethan5%,thenweplantorejectthenullhypothesis);
+3. analyze the data, compute the test statistic (here: z-score), and compare its associated
+p-value(probability)tothepreviouslydeterminedsignificancethreshold;
+4. basedonthep-valueandsignificancethreshold,eitheracceptorrejectthenullhypothesisat
+thegivenconfidencelevelandinterprettheresults.
+Thez-scoreiscomputedastheobserveddifferencedividedbythesquarerootfortheircombined
+variances
+ACC −ACC
+z = 1 2,
+(cid:112)
+σ2+σ2
+1 2
+34whereACC istheaccuracyofonemodelandACC istheaccuracyofasecondmodelestimated
+1 2
+fromthetestset. Recallthatwecomputedthevarianceoftheestimatedaccuracyas
+ACC(1−ACC)
+σ2 =
+n
+inSection1andthencomputedtheconfidenceinterval(NormalApproximationInterval)as
+ACC±z×σ,
+wherez =1.96fora95%confidenceinterval. Comparingtheconfidenceintervalsoftwoaccuracy
+estimates and checking whether they overlap is then analogous to computing the z value for the
+differenceinproportionsandcomparingtheprobability(p-value)tothechosensignificancethreshold.
+So,tocomputethez-scoredirectlyforthedifferenceoftwoproportions,ACC andACC ,wepool
+1 2
+theseproportions(assumingthatACC andACC aretheperformancesoftwomodelsestimated
+1 2
+ontwoindendenttestsetsofsizen andn ,respectively),
+1 2
+ACC ×n +ACC ×n
+ACC = 1 1 2 2,
+1,2 n +n
+1 2
+andcomputethestandarddeviationas
+(cid:115)
+(cid:18) (cid:19)
+1 1
+σ = ACC (1−ACC )× + ,
+1,2 1,2 1,2 n n
+1 2
+suchthatwecancomputethez-score,
+ACC −ACC
+z = 1 2.
+σ
+1,2
+Since,duetousingthesametestset(andviolatingtheindependenceassumption)wehaven =
+1
+n =n,sothatwecansimplifythez-scorecomputationto
+2
+ACC −ACC ACC −ACC
+z = √1 2 = 1 2 .
+(cid:112)
+2σ2 2·ACC (1−ACC ))/n
+1,2 1,2
+whereACC issimply(ACC +ACC )/2.
+1,2 1 2
+Inthesecondstep,basedonthecomputedzvalue(thisassumesthetesterrorsareindependent,which
+isusuallyviolatedinpracticeasweusethesametestset)wecanrejectthenullhypothesisthatthe
+pairofmodelshasequalperformance(here,measuredin"classificationaccuracy")atanα=0.05
+levelif|z|ishigherthan1.96. Alternatively,ifwewanttoputintheextrawork,wecancompute
+theareaunderthestandardnormalcumulativedistributionatthez-scorethreshold. Ifwefindthis
+p-valueissmallerthanasignificancelevelwesetbeforeconductingthetest,thenwecanrejectthe
+nullhypothesisatthatgivensignificancelevel.
+Theproblemwiththistestthoughisthatweusethesametestsettocomputetheaccuracyofthetwo
+classifiers;thus,itmightbebettertouseapairedtestsuchasapairedsamplet-test,butamorerobust
+alternativeistheMcNemartestillustratedinthenextsection.
+4.3 ComparingTwoModelswiththeMcNemarTest
+So, instead of using the "difference of proportions" test, Dietterich [Dietterich,1998] found that
+theMcNemartestistobepreferred. TheMcNemartest,introducedbyQuinnMcNemarin1947
+[McNemar,1947],isanon-parametricstatisticaltestforpairedcomparisonsthatcanbeappliedto
+comparetheperformanceoftwomachinelearningclassifiers.
+Often,McNemar’stestisalsoreferredtoas"within-subjectschi-squaredtest,"anditisappliedto
+pairednominaldatabasedonaversionof2x2confusionmatrix(sometimesalsoreferredtoas2x2
+contingencytable)thatcomparesthepredictionsoftwomodelstoeachother(notbeconfusedwith
+thetypicalconfusionmatricesencounteredinmachinelearning,whicharelistingfalsepositive,true
+35Model 2 Model 2
+correct wrong
+1
+tcerrocgnorw1
+ledoM1 A B
+ledoM C D
+Figure19: ConfusionmatTrhiixs wloarky boy Suetbaisntianc Roanscthekxa its loicefnsMed cunNdeer ma ar’stest.
+Creative Commons Attribution 4.0 International License.
+positive,falsenegative,andtruenegativecountsofasinglemodel). Thelayoutofthe2x2confusion
+matrixsuitableforMcNemar’stestisshowninFigure19.
+Givensucha2x2confusionmatrixasshowninFigure19,wecancomputetheaccuracyofaModel
+1via(A+B)/(A+B+C+D),whereA+B+C+Disthetotalnumberoftestexamplesn.
+Similarly,wecancomputetheaccuracyofModel2as(A+C)/n. Themostinterestingnumbers
+inthistableareincellsBandC,though,asAandDmerelycountthenumberofsampleswhere
+both Model 1 and Model 2 made correct or wrong predictions, respectively. Cells B and C (the
+off-diagonalentries),however,tellushowthemodelsdiffer. Toillustratethispoint,letustakealook
+atthefollowingexample:
+A B
+Model 2 Model 2 Model 2 Model 2
+correct wrong correct wrong
+1 tcerrocgnorw tcerrocgnorw
+ledoM1 9959 11 ledoM1 9945 25
+ledoM 1 29 ledoM 15 15
+Figure20: Confusionmatrixforexemplaryclassificationoutcomesoftwomodels,Model1and
+This work by Sebastian Raschka is licensed under a
+Model2. Creative Commons Attribution 4.0 International License.
+Inbothsubpanels,AandB,inFigure20,theaccuracyofModel1andModel2are99.6%and99.7%,
+respectively.
+• Model1accuracysubpanelA:(9959+11)/10000×100%=99.7%
+36• Model1accuracysubpanelB:(9945+25)/10000×100%=99.7%
+• Model2accuracysubpanelA:(9959+1)/10000×100%=99.6%
+• Model2accuracysubpanelB:(9945+15)/10000×100%=99.6%
+Now,insubpanelA,wecanseethatModel1got11predictionsrightthatModel2gotwrong. Vice
+versa, Model 2 got one prediction right that Model 1 got wrong. Thus, based on this 11:1 ratio,
+wemayconclude,basedonourintuition,thatModel1performssubstantiallybetterthanModel2.
+However,insubpanelB,theModel1:Model2ratiois25:15,whichislessconclusiveaboutwhich
+modelisthebetteronetochoose. ThisisagoodexamplewhereMcNemar’stestcancomeinhandy.
+InMcNemar’sTest,weformulatethenullhypothesisthattheprobabilitiesp(B)andp(C)–where
+B and C refer to the confusion matrix cells introduced in an earlier figure – are the same, or in
+simplifiedterms: Noneofthetwomodelsperformsbetterthantheother. Thus,wemightconsider
+thealternativehypothesisthattheperformancesofthetwomodelsarenotequal.
+TheMcNemarteststatistic("chi-squared")canbecomputedasfollows:
+(B−C)2
+χ2 = .
+B+C
+Aftersettingasignificancethreshold,forexample,α=0.05,wecancomputeap-value–assuming
+thatthenullhypothesisistrue,thep-valueistheprobabilityofobservingthegivenempirical(ora
+larger)χ2-squaredvalue. Ifthep-valueislowerthanourchosensignificancelevel,wecanrejectthe
+nullhypothesisthatthetwomodels’performancesareequal.
+SincetheMcNemarteststatistic,χ2,followsaχ2distributionwithonedegreeoffreedom(assuming
+thenullhypothesisandrelativelylargenumbersincellsBandC,say>25),wecannowuseour
+favoritesoftwarepackageto"lookup"the(1-tail)probabilityviatheχ2probabilitydistributionwith
+onedegreeoffreedom.
+IfwedidthisforscenarioBinthepreviousfigure(χ2 =2.5),wewouldobtainap-valueof0.1138,
+whichislargerthanoursignificancethreshold,andthus,wecannotrejectthenullhypothesis. Now,
+ifwecomputedthep-valueforscenarioA(χ2 =8.3),wewouldobtainap-valueof0.0039,whichis
+belowthesetsignificancethreshold(α=0.05)andleadstotherejectionofthenullhypothesis;we
+canconcludethatthemodels’performancesaredifferent(forinstance,Model1performsbetterthan
+Model2).
+ApproximatelyoneyearafterQuinnMcNemarpublishedtheMcNemarTest[McNemar,1947],Allen
+L.Edwards[Edwards,1948]proposedacontinuitycorrectedversion,whichisthemorecommonly
+usedvarianttoday:
+(cid:0) (cid:1)2
+|B−C|−1
+χ2 = .
+B+C
+Inparticular,Edwardswrote:
+Thiscorrectionwillhavetheapparentresultofreducingtheabsolutevalueofthe
+difference,[B-C],byunity.
+AccordingtoEdward,thiscontinuitycorrectionincreasestheusefulnessandaccuracyofMcNemar’s
+testifwearedealingwithdiscretefrequenciesandthedataisevaluatedregardingthechi-squared
+distribution.
+AfunctionforusingMcNemar’stestisimplementedinMLxtend[Raschka,2018].10
+4.4 Exactp-ValuesviatheBinomialTest
+WhileMcNemar’stestapproximatesthep-valuesreasonablywellifthevaluesincellsBandCare
+largerthan50(referringtothe2x2confusionmatrixshownearlier),forexample,itmakessense
+10http://rasbt.github.io/mlxtend/user_guide/evaluate/mcnemar/
+37touseacomputationallymoreexpensivebinomialtesttocomputetheexactp-valuesifthevalues
+of B and C are relatively small – since the chi-squared value from McNemar’s test may not be
+well-approximatedbythechi-squareddistribution.
+Theexactp-valuecanbecomputedasfollows(basedonthefactthatMcNemar’stest,underthenull
+hypothesis,isessentiallyabinomialtestwithproportion0.5):
+n (cid:18) (cid:19)
+(cid:88) n
+p=2 0.5i(1−0.5)n−i,
+i
+i=B
+wheren = B+C,andthefactor2isusedtocomputethetwo-sidedp-value(here,nisnottobe
+confusedwiththetestsetsizen).
+TheheatmapshowninFigure21illustratesthedifferencesbetweentheMcNemarapproximation
+ofthechi-squaredvalue(withandwithoutEdward’scontinuitycorrection)totheexactp-values
+computedviathebinomialtest.
+Uncorrected vs. exact Corrected vs. exact
+0 0 0.0200
+0.6
+0.0175
+20 absolute 20 absolute
+0.5 0.0150
+40 0.4 p-value 40 0.0125 p-value
+C C 0.0100
+0.3
+60 difference 60 0.0075 difference
+0.2
+0.0050
+80 80
+0.1 0.0025
+100 0.0 100 0.0000
+0 20 40 60 80 100 0 20 40 60 80 100
+B B
+This work by Sebastian Raschka is licensed under a
+Figure21: DifferencesbetweentheMcNemarapproximationofthechi-sqCreuativae Cromemdons Avttribautiolnu 4.0e Inter(nawtionail Ltichense. and
+withoutEdward’scontinuitycorrection)andtheexactp-valuescomputedviathebinomialtest.
+AswecanseeinFigure21,thep-valuesfromthecontinuity-correctedversionofMcNemar’stest
+arealmostidenticaltothep-valuesfromabinomialtestifbothBandCarelargerthan50. (The
+MLxtendfunction,"mcnemar,"providesdifferentoptionsfortogglingbetweentheregularandthe
+correctedMcNemartestaswellasincludinganoptiontocomputetheexactp-values.11)
+4.5 MultipleHypothesesTesting
+Intheprevioussection,wediscussedhowwecouldcomparetwomachinelearningclassifiersusing
+McNemar’stest. However,inpractice,weoftenhavemorethantwomodelsthatweliketocompare
+basedontheirestimatedgeneralizationperformance–forinstance,thepredictionsonanindependent
+testset. Now,applyingthetestingproceduredescribedearliermultipletimeswillresultinatypical
+issuecalled"multiplehypothesestesting."Acommonapproachfordealingwithsuchscenariosisthe
+following:
+1. Conductanomnibustestunderthenullhypothesisthatthereisnodifferencebetweenthe
+classificationaccuracies.
+2. Iftheomnibustestledtotherejectionofthenullhypothesis,conductpairwiseposthoctests,
+withadjustmentsformultiplecomparisons,todeterminewherethedifferencesbetweenthe
+modelperformancesoccurred. (Here,wecoulduseMcNemar’stest,forexample.)
+Omnibus tests are statistical tests designed to check whether random samples depart from a null
+hypothesis. Apopularexampleofanomnibustestistheso-calledAnalysisofVariance(ANOVA),
+11http://rasbt.github.io/mlxtend/user_guide/evaluate/mcnemar/
+38whichisaprocedureforanalyzingthedifferencesbetweengroupmeans. Inotherwords,ANOVAis
+commonlyusedfortestingthesignificanceofthenullhypothesisthatthemeansofseveralgroupsare
+equal. Tocomparemultiplemachinelearningmodels,Cochran’sQtestwouldbeapossiblechoice,
+whichisessentiallyageneralizedversionofMcNemar’stestforthreeormoremodels. However,
+omnibustestsareoverallsignificanceteststhatdonotprovideinformationabouthowthedifferent
+modelsdiffer–omnibustestssuchasCochran’sQonlytellusthatagroupofmodelsdiffersornot.
+Since omnibus tests can tell us that but not how models differ, we can perform post hoc tests if
+an omnibus test leads to the rejection of the null hypothesis. In other words, if we successfully
+rejectedthenullhypothesisthattheperformanceofthreeormodelsisthesameatapredetermined
+significancethreshold,wemayconcludethatthereisatleastonesignificantdifferenceamongthe
+differentmodels.
+By definition, post hoc testing procedures do not require any prior plan for testing. Hence, post
+hoctestingproceduresmayhaveabadreputationandmayberegardedas"fishingexpeditions"or
+"searchingfortheneedleinthehaystack,"becausenohypothesisisclearbeforehandintermsof
+whichmodelsshouldbecompared,sothatitisrequiredtocompareallpossiblepairsofmodelswith
+each other, which leads to the multiple hypothesis problems that we briefly discussed in Section
+3. However,pleasekeepinmindthattheseareallapproximationsandeverythingconcerning
+statisticaltestsandreusingtestsets(independenceviolation)shouldbetakenwith(atleast)a
+grainofsalt.
+Fortheposthocprocedure,wecoulduseoneofthemanycorrectionterms,forexample,Bonferroni’s
+correction[Bonferroni,1936,Dunn,1961]formultiplehypothesistesting. Inanutshell, wherea
+given significance threshold (or α-level) may be appropriate for a single comparison between to
+models, it is not suitable for multiple pair-wise comparisons. For instance, using the Bonferroni
+correctionisameanstoreducethefalsepositiverateinmultiplecomparisontestsbyadjustingthe
+significancethresholdtobemoreconservative.
+Thenexttwosectionswilldiscusstwoomnibustests,Cochran’sQtestandtheF-testforcomparing
+multipleclassifiersonthesametestsetproposedbyLooney[Looney,1988].
+4.6 Cochran’sQTestforComparingthePerformanceofMultipleClassifiers
+Cochran’sQtestcanberegardedasageneralizedversionofMcNemar’stestthatcanbeappliedto
+comparethreeormoreclassifiers. Inasense,Cochran’sQtestissimilartoANOVAbutforpaired
+nominaldata. SimilartoANOVA,itdoesnotprovideuswithinformationaboutwhichgroups(or
+models)differ–onlytellsusthatthereisadifferenceamongthemodels.
+TheteststatisticQisapproximately,(similartoMcNemar’stest),distributedaschi-squaredwith
+M −1 degrees of freedom, where M is the number of models we evaluate (since M = 2 for
+McNemar’stest,McNemar’steststatisticapproximatesachi-squareddistributionwithonedegreeof
+freedom).
+Moreformally,Cochran’sQtestteststhenullhypothesis(H )thatthereisnodifferencebetweenthe
+0
+classificationaccuracies[Fleissetal.,2013]:
+H :ACC =ACC =...=ACC .
+0 1 2 M
+Let{C ,...,C }beasetofclassifierswhohaveallbeentestedonthesamedataset. IftheM
+1 M
+classifiersdonotdifferintermsoftheirperformance,thenthefollowingQstatisticisdistributed
+approximatelyas"chi-squared"withM −1degreesoffreedom:
+M(cid:80)M G2−T2
+Q=(M −1) i=1 i .
+MT −(cid:80)n M2
+j=1 j
+Here,G isthenumberofobjectsoutofthentestexamplescorrectlyclassifiedbyC =1,...M;
+i i
+M isthenumberofclassifiersoutofM thatcorrectlyclassifiedthejthexampleinthetestdataset;
+j
+andT isthetotalnumberofcorrectnumberofvotesamongtheM classifiers[Kuncheva,2004]:
+M N
+(cid:88) (cid:88)
+T = ; G = M .
+i j
+i=1 j=1
+39To perform Cochran’s Q test, we typically organize the classifier predictions in a binary n×M
+matrix(numberoftestexamplesvs. thenumberofclassifiers). Theijthentryofsuchmatrixis0ifa
+classifierC hasmisclassifiedadataexample(vector)x and1otherwise(iftheclassifierpredicted
+j i
+theclasslabelf(x )correctly).
+i
+Appliedtoanexampledatasetthatwastakenfrom[Kuncheva,2004],theprocedurebelowillustrates
+howtheclassificationresultsmaybeorganized. Forinstance,assumewehavethegroundtruthlabels
+ofthetestdatasety
+true
+andthefollowingpredictionsonthetestsetby3classifiers(y ,y ,andy ):
+C1 C2 C3
+y =[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+true
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, (47)
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+y =[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,
+C1
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, (48)
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+y =[1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+C2
+1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, (49)
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+y =[1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,
+C3
+1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, (50)
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1].
+Wecanthentabulatethecorrect(1)andincorrect(0)classificationsasshowninTable2.
+Bypluggingintherespectivevalueintothepreviousequation,weobtainthefollowingQvalue:
+3×(842+922+922)−2682
+Q=2× ≈7.5294. (51)
+3×268−(80×9+11×4+6×1)
+Now,theQvalue(approximatingχ2)correspondstoap-valueofapproximately0.023assuminga
+χ2 distributionwithM −1=2degreesoffreedom. Assumingthatwechoseasignificancelevel
+of α = 0.05, we would reject the null hypothesis that all classifiers perform equally well, since
+0.023<α. (AnimplementationofCochran’sQtestisprovidedinMLxtend[Raschka,2018].12)
+In practice, if we successfully rejected the null hypothesis, we could perform multiple post hoc
+pair-wisetests–forexample,McNemar’stestwithaBonferronicorrection–todeterminewhich
+pairshavedifferentpopulationproportions. Unfortunately,numerouscomparisonsareusuallyvery
+tricky in practice. Peter H. Westfall, James F. Troendl, and Gene Pennello wrote a nice article
+on how to approach such situations where we want to compare multiple models to each other
+[Westfalletal.,2010].
+AsPerneger,ThomasV[Perneger,1998]writes:
+12http://rasbt.github.io/mlxtend/user_guide/evaluate/cochrans_q/
+40Table2: Tablecomparingmodelperformancesof3classifiersusedtoillustratethecomputationof
+Cochran’sQinEquation51
+.
+C C C Occurrences
+1 2 3
+1 1 1 80
+1 1 0 2
+1 0 1 0
+1 0 0 2
+0 1 1 9
+0 1 0 1
+0 0 1 3
+0 0 0 3
+ClassificationAccuracies:
+84/100×100%=84% 92/100×100%=92% 92/100×100%=92%
+Type I errors [False Positives] cannot decrease (the whole point of Bonferroni
+adjustments)withoutinflatingtypeIIerrors(theprobabilityofacceptingthenull
+hypothesiswhenthealternativeistrue)[Rothman,1990]. AndtypeIIerrors[False
+Negatives]arenolessfalsethantypeIerrors.
+Eventually,oncemoreitcomesdowntothe"nofreelunch"–inthiscontext,letusreferofitas
+the "no free lunch theorem of statistical tests." However, statistical testing frameworks can be a
+valuableaidindecisionmaking. So,inpractice,ifwearehonestandrigorous,theprocessofmultiple
+hypothesistestingwithappropriatecorrectionscanbeausefulaidindecisionmaking. However,
+wehavetobecarefulthatwedonotputtoomuchemphasisonsuchprocedureswhenitcomesto
+assessingevidenceindata.
+4.7 TheF-testforComparingMultipleClassifiers
+Almostironically,CochrannotedthatinhisworkontheQtest[Cochran,1950]
+Ifthedatahadbeenmeasuredvariablesthatappearednormallydistributed,instead
+ofacollectionof1’sand0’s,theF-testwouldbealmostautomaticallyappliedas
+theappropriatemethod. Withouthavinglookedintothatmatter,Ihadonceortwice
+suggestedtoresearchworkersthattheF-testmightserveasanapproximationeven
+whenthetableconsistsof1’sand0’s
+ThemethodofusingtheF-testforcomparingtwoclassifiersinthissectionissomewhatloosely
+basedonLooney[Looney,1988],whereasitshallbenotedthatLooneyrecommendsanadjusted
+versioncalledF+test.
+InthecontextoftheF-test,ournullhypothesisisagainthattherethatthereisnodifferencebetween
+theclassificationaccuracies:
+p :H =p =p =···=p .
+i 0 1 2 L
+Let{C ,...,C }beasetofclassifierswhichhaveallbeentestedonthesamedataset. IftheM
+1 M
+classifiersdonotperformdifferently,thentheFstatisticisdistributedaccordingtoanFdistribution
+with(M −1)and(M −1)×ndegreesoffreedom,wherenisthenumberofexamplesinthetest
+set. ThecalculationoftheFstatisticconsistsofseveralcomponents,whicharelistedbelow(adopted
+from[Looney,1988]).
+WestartbydefiningACC astheaverageoftheaccuraciesofthedifferentmodels
+avg
+M
+1 (cid:88)
+ACC = ACC .
+avg M j
+j=1
+41Thesumofsquaresoftheclassifiersisthencomputedas
+M
+(cid:88)
+SSA=n (G )2−n·M ·ACC ,
+j avg
+j=1
+whereG istheproportionofthenexamplesclassifiedcorrectlybyclassifierj.
+j
+Thesumofsquaresfortheobjectsiscalculatedasfollows:
+n
+1 (cid:88)
+SSB = (M )2−M ·n·ACC2 .
+M j avg
+j=1
+Here, M is the number of classifiers out of M that correctly classified object x ∈ X , where
+j j n
+X ={x ,...x }isthetestdatasetonwhichtheclassifiersaretestedon.
+n 1 n
+Finally,wecomputethetotalsumofsquares,
+SST =M ·n·ACC (1−ACC ),
+avg avg
+sothatwethencancomputethesumofsquaresfortheclassification–objectinteraction:
+SSAB =SST −SSA−SSB.
+TocomputetheFstatistic,wenextcomputethemeanSSAandmeanSSABvalues:
+SSA
+MSA= ,
+M −1
+and
+SSAB
+MSAB = .
+(M −1)(n−1)
+FromtheMSAandMSAB,wecanthencalculatetheF-valueas
+MSA
+F = .
+MSAB
+AftercomputingtheF-value,wecanthenlookupthep-valuefromanF-distributiontableforthe
+corresponding degrees of freedom or obtain it computationally from a cumulative F-distribution
+function.Inpractice,ifwesuccessfullyrejectedthenullhypothesisatapreviouslychosensignificance
+threshold,wecouldperformmultipleposthocpair-wisetests–forexample,McNemartestswitha
+Bonferronicorrection–todeterminewhichpairshavedifferentpopulationproportions.
+AnimplementationofthisF-testisavailableviaMLxtend[Raschka,2018].13
+4.8 ComparingAlgorithms
+Thepreviouslydescribedstatisticaltestsfocusedonmodelcomparisonsandthusdonottakethe
+varianceofthetrainingsetsintoaccount,whichcanbeanissueespeciallyiftrainingsetsaresmall
+andlearningalgorithmsaresusceptibletoperturbationsinthetrainingsets.
+However, if we consider the comparison between sets of models where each set has been fit to
+differenttrainingsets,weconceptuallyshiftfromamodelcomparedtoanalgorithmcomparisontask.
+Thisisoftendesirable,though. Forinstance,assumewedevelopanewlearningalgorithmorwantto
+decidewhichlearningalgorithmisbesttoshipwithournewsoftware(atrivialexamplewouldbean
+13http://rasbt.github.io/mlxtend/user_guide/evaluate/ftest
+42emailprogramwithalearningalgorithmthatlearnshowtofilterspambasedontheuser’sdecisions).
+Inthiscase,wearewanttofindouthowdifferentalgorithmsperformondatasetsfromasimilar
+problemdomain.
+OneofthecommonlyusedtechniquesforalgorithmcomparisonisThomasDietterich’s5x2-Fold
+Cross-Validationmethod(5x2cvforshort)thatwasintroducedinhispaper"Approximatestatistical
+tests for comparing supervised classification learning algorithms" [Dietterich,1998]. It is a nice
+paperthatdiscussesallthedifferenttestingscenarios(thedifferentcircumstancesandapplications
+formodelevaluation,modelselection,andalgorithmselection)inthecontextofstatisticaltests. The
+conclusionsthatcanbedrawnfromempiricalcomparisononsimulateddatasetsaresummarized
+below.
+1. McNemar’stest:
+• lowfalsepositiverate
+• fast,onlyneedstobeexecutedonce
+2. Thedifferenceinproportionstest:
+• highfalsepositiverate(here,incorrectlydetectedadifferencewhenthereisnone)
+• cheaptocompute,though
+3. Resampledpairedt-test:
+• highfalsepositiverate
+• computationallyveryexpensive
+4. k-foldcross-validatedt-test:
+• somewhatelatedfalsepositiverate
+• requiresrefittingtotrainingsets;ktimesmorecomputationsthanMcNemar’stest
+5. 5x2cvpairedt-test
+• lowfalsepositiverate(similartoMcNemar’stest)
+• slightlymorepowerfulthanMcNemar’stest;recommendedifcomputationalefficiency
+(runtime)isnotanissue(10timesmorecomputationsthanMcNemar’stest)
+ThebottomlineisthatMcNemar’stestisagoodchoiceifthedatasetsarerelativelylargeand/orthe
+modelfittingcanonlybeconductedonce. Iftherepeatedfittingofthemodelsispossible,the5x2cv
+testisagoodchoiceasitalsoconsiderstheeffectofvaryingorresampledtrainingsetsonthemodel
+fitting.
+Forcompleteness,thenextsectionwillsummarizethemechanicsofthetestswehavenotcovered
+thusfar.
+4.9 ResampledPairedt-Test
+Resampled paired t-test procedure (also called k-hold-out paired t-test) is a popular method for
+comparingtheperformanceoftwomodels(classifiersorregressors);however,thismethodhasmany
+drawbacksandisnotrecommendedtobeusedinpracticeasDietterich[Dietterich,1998]noted.
+Toexplainhowthismethodworks,letusconsidertwoclassifiersC andC . Further,wehavea
+1 2
+labeled dataset S. In the common hold-out method, we typically split the dataset into 2 parts: a
+trainingandatestset. Intheresampledpairedt-testprocedure,werepeatthissplittingprocedure
+(withtypically2/3trainingdataand1/3testdata)ktimes(usually30ormore). Ineachiteration,we
+fitbothC andC onthesametrainingsetandevaluatetheseonthesametestset. Then,wecompute
+1 2
+thedifferenceinperformancebetweenC andC ineachiterationsothatweobtaink difference
+1 2
+measures. Now,bymakingtheassumptionthatthesekdifferenceswereindependentlydrawnand
+followanapproximatelynormaldistribution,wecancomputethefollowingtstatisticwithk−1
+degreesoffreedomaccordingtoStudent’st-test,underthenullhypothesisthatthemodelsC and
+1
+C haveequalperformance:
+2
+√
+ACC k
+t= avg .
+(cid:113)
+(cid:80)k (ACC −ACC )2/(k−1)
+i=1 i avg
+43Here, ACC computesthedifferencebetweenthemodelaccuraciesintheithiterationACC =
+i i
+ACC −ACC andACC representstheaveragedifferencebetweentheclassifierperfor-
+i,C1 i,C2 avg
+mancesACC = 1 (cid:80)k ACC .
+avg k i=1 i
+Once we computed the t statistic, we can calculate the p-value and compare it to our chosen
+significance level, for example, α = 0.05. If the p-value is smaller than α, we reject the null
+hypothesisandacceptthatthereisasignificantdifferencebetweenthetwomodels.
+Theproblemwiththismethod,andthereasonwhyitisnotrecommendedtobeusedinpractice,is
+thatitviolatestheassumptionsofStudent’st-test,asthedifferencesofthemodelperformancesare
+notnormallydistributedbecausetheaccuraciesarenotindependent(sincewecomputethemonthe
+sametestset). Also,thedifferencesbetweentheaccuraciesthemselvesarealsonotindependentsince
+thetestsetsoverlapuponresampling. Hence,inpractice,itisnotrecommendedtousethistestin
+practice. However,forcomparisonstudies,thistestisimplementedinMLxtend[Raschka,2018].14.
+4.10 k-foldCross-validatedPairedt-Test
+Similartotheresampledpairedt-test,thek-foldcross-validatedpairedt-testisastatisticaltesting
+techniquethatisverycommonin(older)literature. Whileitaddressessomeofthedrawbacksofthe
+resampledpairedt-testprocedure,thismethodhasstilltheproblemthatthetrainingsetsoverlapand
+ishencealsonotrecommendedtobeusedinpractice[Dietterich,1998].
+Again,forcompleteness,themethodisoutlinedbelow. Theprocedureisbasicallyequivalenttothat
+oftheresampledpairedt-testprocedureexceptthatweusek-foldcrossvalidationinsteadofsimple
+resampling,suchthatifwecomputethetvalue,
+√
+ACC k
+t= avg ,
+(cid:113)
+(cid:80)k (ACC −ACC )2/(k−1)
+i=1 i avg
+kisequaltothenumberofcross-validationrounds. Again,forcomparisonstudies,Imadethisthis
+testingprocedureavailablethroughMLxtend[Raschka,2018].15
+4.11 Dietterich’s5x2-FoldCross-ValidatedPairedt-Test
+The5x2cvpairedt-testisaprocedureforcomparingtheperformanceoftwomodels(classifiers
+orregressors)thatwasproposedbyDietterich(Dietterich,1998)toaddressshortcomingsinother
+methodssuchastheresampledpairedt-testandthek-foldcross-validatedpairedt-test,whichwere
+outlinedintheprevioustwosections.
+Whiletheoverallapproachissimilartothepreviouslydescribedt-testvariants,inthe5x2cvpaired
+t-test,werepeatthesplitting(50%trainingand50%testdata)fivetimes.
+Ineachofthe5iterations,wefittwoclassifiersC andC tothetrainingsplitandevaluatetheir
+1 2
+performanceonthetestsplit. Then,werotatethetrainingandtestsets(thetrainingsetbecomesthe
+testsetandviceversa)computetheperformanceagain,whichresultsintwoperformancedifference
+measures:
+ACC =ACC −ACC ,
+A A,C1 A,C2
+and
+ACC =ACC −ACC .
+B B,C1 B,C2
+Then,weestimatetheestimatemeanandvarianceofthedifferences:
+ACC =(ACC +ACC )/2,
+avg A B
+and
+14http://rasbt.github.io/mlxtend/user_guide/evaluate/paired_ttest_resampled/
+15http://rasbt.github.io/mlxtend/user_guide/evaluate/paired_ttest_kfold_cv/
+44s2 =(ACC −ACC )2+(ACC −ACC2 )2.
+A avg B avg
+Thevarianceofthedifferenceiscomputedforthe5iterationsandthenusedtocomputethetstatistic
+asfollows:
+ACC
+t= A,1 ,
+(cid:113)
+(1/5)(cid:80)5 s2
+i=1 i
+whereACC istheACC obtainedfromthefirstiteration.
+A,1 A
+The t statistic approximately follows as t distribution with 5 degrees of freedom, under the null
+hypothesisthatthemodelsC andC haveequalperformance. Usingthetstatistic,thep-valuecan
+1 2
+thenbecomputedandcomparedwithapreviouslychosensignificancelevel,forexample,α=0.05.
+Ifthep-valueissmallerthanα,werejectthenullhypothesisandacceptthatthereisasignificant
+differenceinthetwomodels. The5x2cvpairedt-testisavailablefromMLxtend[Raschka,2018].16
+4.12 Alpaydin’sCombined5x2cvF-test
+The5x2cvcombinedF-testisaprocedureforcomparingtheperformanceofmodels(classifiers
+or regressors) that was proposed by Alpaydin [Alpaydin,1999] as a more robust alternative to
+Dietterich’s5x2cvpairedt-testprocedureoutlinedintheprevioussection.
+Toexplainhowthismechanicsofthismethod,letusconsidertwoclassifiers1and2andre-usethe
+notationfromtheprevioussection. TheFstatisticisthencomputedasfollows:
+(cid:80)5 (cid:80)2 (ACC )2
+f = i=1 j=1 i,j ,
+2(cid:80)5 s2
+i=1 i
+whichisapproximatelyF distributedwith10and5degreesoffreedom. Thecombined5x2cvF-test
+isavailablefromMLxtend[Raschka,2018].17.
+4.13 Effectsize
+While(unfortunatelyrarelydoneinpractice),wemayalsowanttoconsidereffectsizessincelarge
+samples elevate p-values and can make everything seem statistically significant. In other words,
+"theoretical significance" does not imply "practical significance." As effect size is a more of an
+objectivetopicthatdependsontheproblem/task/questionathand,adetaileddiscussionisobviously
+outofthescopeofthisarticle.
+4.14 NestedCross-Validation
+Inpracticalapplications,weusuallyneverhavetheluxuryofhavingalarge(or,ideallyinfinitely)
+sizedtestset,whichwouldprovideuswithanunbiasedestimateofthetruegeneralizationerrorofa
+model. Hence,wearealwaysonaquestoffinding"better"workaroundfordealingwithsize-limited
+datasets: Reservingtoomuchdatafortrainingresultsinunreliableestimatesofthegeneralization
+performance,andsettingasidetoomuchdatafortestingresultsintoolittledatafortraining,which
+hurtsmodelperformance.
+Almostalways,wealsodonotknowtheidealsettingsofthelearningalgorithmforagivenproblemor
+problemdomain.Hence,weneedtouseanavailabletrainingsetforhyperparametertuningandmodel
+selection. Weestablishedearlierthatwecouldusek-foldcross-validationasamethodforthesetasks.
+However,ifweselectthe"besthyperparametersettings"basedontheaveragek-foldperformanceor
+the*same*testset,weintroduceabiasintotheprocedure,andourmodelperformanceestimates
+willnotbeunbiasedanymore. Mainly,wecanthinkofmodelselectionasanothertrainingprocedure,
+andhence,wewouldneedadecently-sized,independenttestsetthatwehavenotseenbeforetoget
+anunbiasedestimateofthemodels’performance. Often,thisisnotaffordable.
+16http://rasbt.github.io/mlxtend/user_guide/evaluate/paired_ttest_5x2cv/
+17http://rasbt.github.io/mlxtend/user_guide/evaluate/combined_ftest_5x2cv/
+45In recent years, a technique called nested cross-validation has emerged as one of the popular or
+somewhat recommended methods for comparing machine learning algorithms; it was likely first
+described by Iizuka [Iizukaetal.,2003] and Varma and Simon [VarmaandSimon,2006] when
+workingwithsmalldatasets. Thenestedcross-validationprocedureoffersaworkaroundforsmall-
+datasetsituationsthatshowsalowbiasinpracticewherereservingdataforindependenttestsetsis
+notfeasible.
+VarmaandSimonfoundthatthenestedcross-validationapproachcanreducethebias,compared
+toregulark-foldcross-validationwhen usedforboth hyperparametertuning andevaluation, can
+beconsiderablybereduced. Astheresearchersstate,"AnestedCVprocedureprovidesanalmost
+unbiasedestimateofthetrueerror"[VarmaandSimon,2006].
+Themethodofnestedcross-validationisrelativelystraight-forwardasitmerelyisanestingoftwo
+k-foldcross-validationloops: theinnerloopisresponsibleforthemodelselection,andtheouterloop
+isresponsibleforestimatingthegeneralizationaccuracy,asshowninFigure22.
+Original set
+Training folds Test fold
+Outer loop
+Train with optimal parameters from
+the inner loop; then average
+asanestimateof the generalization
+performance
+Training fold Validation fold
+Inner loop
+Tune parameters
+Figure22: Illustrationofnestedcross-validation.
+Notethatinthisparticularcase,thisisa5x2setup(5-foldcross-validationintheouterloop,and
+2-foldcross-validationintheinnerloop). However,thisisnotthesameasDietterich’s5x2cvmethod,
+whichisanoftenconfusedscenariosuchthatIwanttohighlightithere.
+Code for using nested cross-validation with scikit-learn [Pedregosaetal.,2011] can be found at
+https://github.com/rasbt/model-eval-article-supplementary/blob/master/code/
+nested_cv_code.ipynb.
+4.15 Conclusions
+Since "a picture is worth a thousand words," I want to conclude this series on model evaluation,
+modelselection,andalgorithmselectionwithadiagram(Figure23)thatsummarizesmypersonal
+recommendationsbasedontheconceptsandliteraturethatwasreviewed.
+Itshouldbestressedthatparametrictestsforcomparingmodelperformancesusuallyviolateoneor
+moreindependentassumptions(themodelsarenotindependentbecausethesametrainingsetwas
+used,andtheestimatedgeneralizationperformancesarenotindependentbecausethesametestset
+wasused.). Inanidealworld,wewouldhaveaccesstothedatageneratingdistributionoratleastan
+46▪ 2-way holdout method
+(train/test split)
+Large dataset
+▪ Confidence interval via
+normal approximation
+Performance
+estimation
+▪ (Repeated) k-fold cross-validation
+without independent test set
+Small dataset
+▪ Leave-one-out cross-validation
+without independent test set
+▪ Confidence interval via
+0.632(+) bootstrap
+▪ 3-way holdout method
+Large dataset
+(train/validation/test split)
+Model selection
+(hyperparameter optimization)
+and performance estimation
+▪ (Repeated) k-fold cross-validation
+with independent test set
+Small dataset
+▪ Leave-one-out cross-validation
+with independent test set
+▪ Multiple independent
+training sets + test sets
+(algorithm comparison, AC)
+Large dataset
+▪ McNemar test
+(model comparison, MC)
+Model & algorithm
+comparison ▪ Cochran’s Q + McNemar test
+(MC)
+Small dataset
+▪ Combined 5x2cv F test (AC)
+▪ Nested cross-validation (AC)
+Figure23: Arecommendedsubsetoftechniquestobeusedtoaddressdifferentaspectsofmodel
+evaluation in the context of small and large datasets. The abbreviation "MC" stands for "Model
+ThisworkbySebastianRaschkaislicensedundera
+Comparison,"Carenadtiv"eACCom"msotansnAdtstrifbourtio"nA4l.0goInrteitrhnamtioCnaolLmicpenasreis.on,"todistinguishthesetwotasks.
+almostinfinitepoolofnewdata. However,inmostpracticalapplications,thesizeofthedatasetis
+limited;hence,wecanuseoneofthestatisticaltestsdiscussedinthisarticleasaheuristictoaidour
+decisionmaking.
+NotethattherecommendationsIlistedinthefigureabovearesuggestionsanddependontheproblem
+athand. Forinstance,largetestdatasets(where"large"isrelativebutmightrefertothousandsor
+millionsofdatarecords),canprovidereliableestimatesofthegeneralizationperformance,whereas
+usingasingletrainingandtestsetwhenonlyafewdatarecordsareavailablecanbeproblematicfor
+severalreasonsdiscussedthroughoutSection2andSection3. Ifthedatasetisverysmall,itmight
+notbefeasibletosetasidedatafortesting,andinsuchcases,wecanusek-foldcross-validation
+withalargekorLeave-one-outcross-validationasaworkaroundforevaluatingthegeneralization
+performance. However, using these procedures, we have to bear in mind that we then do not
+compare between models but different algorithms that produce different models on the training
+folds. Nonetheless,theaverageperformanceoverthedifferenttestfoldscanserveasanestimatefor
+47thegeneralizationperformance(Section3)discussedthevariousimplicationsforthebiasandthe
+varianceofthisestimateasafunctionofthenumberoffolds).
+Formodelcomparisons,weusuallydonothavemultipleindependenttestsetstoevaluatethemodels
+on,sowecanagainresorttocross-validationproceduressuchask-foldcross-validation,the5x2cv
+method,ornestedcross-validation. AsGaelVaroquaux[Varoquaux,2017]writes:
+Cross-validationisnotasilverbullet. However,itisthebesttoolavailable,because
+itistheonlynon-parametricmethodtotestformodelgeneralization.
+4.16 Acknowledgments
+IwouldliketothankSimonOpstrupDrueforcarefullyreadingthemanuscriptandprovidinguseful
+suggestions.
+References
+[Alpaydin,1999] Alpaydin,E.(1999). Combined5x2cvFtestforcomparingsupervisedclassifica-
+tionlearningalgorithms. NeuralComputation,11(8):1885–1892.
+[BengioandGrandvalet,2004] Bengio,Y.andGrandvalet,Y.(2004). Nounbiasedestimatorofthe
+varianceofk-foldcross-validation. JournalofMachineLearningResearch,5(Sep):1089–1105.
+[Bonferroni,1936] Bonferroni,C.(1936). Teoriastatisticadelleclassiecalcolodelleprobabilita.
+PubblicazionidelRIstitutoSuperiorediScienzeEconomicheeCommericialidiFirenze,8:3–62.
+[Breimanetal.,1984] Breiman,L.,Friedman,J.,Stone,C.J.,andOlshen,R.A.(1984). Classifica-
+tionandregressiontrees. CRCpress.
+[Cochran,1950] Cochran, W. G. (1950). The comparison of percentages in matched samples.
+Biometrika,37(3/4):256–266.
+[Dietterich,1998] Dietterich,T.G.(1998). Approximatestatisticaltestsforcomparingsupervised
+classificationlearningalgorithms. Neuralcomputation,10(7):1895–1923.
+[Dunn,1961] Dunn,O.J.(1961). Multiplecomparisonsamongmeans. JournaloftheAmerican
+statisticalassociation,56(293):52–64.
+[Edwards,1948] Edwards, A. L. (1948). Note on the “correction for continuity” in testing the
+significanceofthedifferencebetweencorrelatedproportions. Psychometrika,13(3):185–187.
+[Efron,1981] Efron,B.(1981). Nonparametricstandarderrorsandconfidenceintervals. Canadian
+JournalofStatistics,9(2):139–158.
+[Efron,1983] Efron, B. (1983). Estimating the error rate of a prediction rule: improvement on
+cross-validation. JournaloftheAmericanStatisticalAssociation,78(382):316–331.
+[Efron,1992] Efron,B.(1992). Bootstrapmethods: anotherlookattheJackknife. InBreakthroughs
+inStatistics,pages569–593.Springer.
+[EfronandTibshirani,1997] Efron,B.andTibshirani,R.(1997). Improvementsoncross-validation:
+the.632+bootstrapmethod. JournaloftheAmericanStatisticalAssociation,92(438):548–560.
+[EfronandTibshirani,1994] Efron,B.andTibshirani,R.J.(1994). AnIntroductiontotheBootstrap.
+CRCpress.
+[Fleissetal.,2013] Fleiss,J.L.,Levin,B.,andPaik,M.C.(2013). StatisticalMethodsforRates
+andProportions. JohnWiley&Sons.
+[Hastieetal.,2009] Hastie, T., Tibshirani, R., and Friedman, J. H. (2009). In The Elements of
+StatisticalLearning: DataMining,Inference,andPrediction. Springer,NewYork.
+[Hawkinsetal.,2003] Hawkins,D.M.,Basak,S.C.,andMills,D.(2003). Assessingmodelfitby
+cross-validation. JournalofChemicalInformationandComputerSciences,43(2):579–586.
+[Iizukaetal.,2003] Iizuka, N., Oka, M., Yamada-Okabe, H., Nishida, M., Maeda, Y., Mori, N.,
+Takao,T.,Tamesa,T.,Tangoku,A.,Tabuchi,H.,etal.(2003). Oligonucleotidemicroarrayfor
+predictionofearlyintrahepaticrecurrenceofhepatocellularcarcinomaaftercurativeresection.
+Thelancet,361(9361):923–929.
+48[Jamesetal.,2013] James,G.,Witten,D.,Hastie,T.,andTibshirani,R.(2013). InAnIntroduction
+toStatisticalLearning: WithApplicationsinR. Springer,NewYork.
+[Kim,2009] Kim, J.-H. (2009). Estimating classification error rate: Repeated cross-validation,
+repeatedhold-outandbootstrap. ComputationalStatistics&DataAnalysis,53(11):3735–3745.
+[Kohavi,1995] Kohavi,R.(1995). Astudyofcross-validationandbootstrapforaccuracyestimation
+andmodelselection. InternationalJointConferenceonArtificialIntelligence,14(12):1137–1143.
+[Kuncheva,2004] Kuncheva,L.I.(2004). CombiningPatternClassifiers: MethodsandAlgorithms.
+JohnWiley&Sons.
+[Looney,1988] Looney,S.W.(1988). Astatisticaltechniqueforcomparingtheaccuraciesofseveral
+classifiers. PatternRecognitionLetters,8(1):5–9.
+[McNemar,1947] McNemar, Q. (1947). Note on the sampling error of the difference between
+correlatedproportionsorpercentages. Psychometrika,12(2):153–157.
+[Molinaroetal.,2005] Molinaro, A.M., Simon, R., andPfeiffer, R.M.(2005). Predictionerror
+estimation: acomparisonofresamplingmethods. Bioinformatics,21(15):3301–3307.
+[Pedregosaetal.,2011] Pedregosa,F.,Varoquaux,G.,Gramfort,A.,Michel,V.,Thirion,B.,Grisel,
+O.,Blondel,M.,Prettenhofer,P.,Weiss,R.,Dubourg,V.,etal.(2011). Scikit-learn: Machine
+learninginpython. JournalofMachineLearningResearch,12(Oct):2825–2830.
+[Perneger,1998] Perneger, T. V. (1998). What’s wrong with bonferroni adjustments. Bmj,
+316(7139):1236–1238.
+[Raschka,2018] Raschka,S.(2018). Mlxtend: Providingmachinelearninganddatascienceutilities
+and extensions to python’s scientific computing stack. The Journal of Open Source Software,
+3(24).
+[Refaeilzadehetal.,2007] Refaeilzadeh,P.,Tang,L.,andLiu,H.(2007). Oncomparisonoffeature
+selection algorithms. In Proceedings of AAAI Workshop on Evaluation Methods for Machine
+LearningII,pages34–39.
+[Rothman,1990] Rothman, K. J. (1990). No adjustments are needed for multiple comparisons.
+Epidemiology,pages43–46.
+[Tanetal.,2005] Tan,P.-N.,Steinbach,M.,andKumar,V.(2005). InIntroductiontoDataMining.
+PearsonAddisonWesley,Boston.
+[VarmaandSimon,2006] Varma, S. and Simon, R. (2006). Bias in error estimation when using
+cross-validationformodelselection. BMCbioinformatics,7(1):91.
+[Varoquaux,2017] Varoquaux,G.(2017). Cross-validationfailure: smallsamplesizesleadtolarge
+errorbars. Neuroimage.
+[Westfalletal.,2010] Westfall,P.H.,Troendle,J.F.,andPennello,G.(2010). MultipleMcNemar
+tests. Biometrics,66(4):1185–1191.
+49
