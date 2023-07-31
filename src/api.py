@@ -50,7 +50,7 @@ def check_key(): ###### Check if OpenAI API key is present
 def validate_key():
     try:
         r=openai.Completion.create(model=models, prompt="t.",max_tokens=5)
-        #st.sidebar.success("API key validated")
+        st.sidebar.success("API key validated")
         return True
     except:
         st.sidebar.error("API key invalid, please change the key")
