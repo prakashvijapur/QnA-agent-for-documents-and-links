@@ -16,13 +16,6 @@ __Document Summary__: AnswerBot generates a summary, talking points, and sample 
 
 __User-Friendly Interface__: The application interface is built using Streamlit, making it intuitive and easy to navigate.
 
----
-## Demo Video
-
-A [__YouTube video__] -- (Update the link) -- 👈 of the demo can be accessed here 
-
----
-
 
 ## Run locally
 

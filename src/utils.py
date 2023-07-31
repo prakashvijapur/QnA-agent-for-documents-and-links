@@ -62,7 +62,7 @@ def first_column():
 #### display function for the second column of the app homepage and info page
 #### this function is called from the main.py file
 def second_column():
-            st.markdown("<p style='text-align:center; color:black;'><u><b>How to Use</u><a href='https://youtu.be/UuTmUxBzE_w'>[Watch Demo🎥]</a></b></p>",unsafe_allow_html=True)
+            st.markdown("<p style='text-align:center; color:black;'><u><b>How to Use</u></b></p>",unsafe_allow_html=True)
             st.markdown("<span style='color:#5A5A5A;'>👉🏽 Firstly, you need to enter your OpenAI api key🔧 in the input box on the sidebar. You can get it [here](https://platform.openai.com/account/api-keyshttps://platform.openai.com/account/api-keys)</span>",unsafe_allow_html=True)
             with st.expander("Why do I need an API key?"):
                 st.markdown("<span style='color:#5A5A5A;'>🌟 AnswerBot uses OpenAI's GPT APIs. A [cost is incurred for every API call](https://openai.com/pricing)💰. OpenAI offers free credits when you sign up. So you can try out AnswerBot without incurring any cost. If you'd like to fund this app to take away this requirement 😬 Please drop a note [here](mailto:abhinav.kimothi.ds@gmail.com)</span>",unsafe_allow_html=True)
@@ -83,7 +83,7 @@ def third_column():
             st.markdown("<p style='color:#5A5A5A;'>🎯 Use models and embeddings that are free of cost.",unsafe_allow_html=True)
             st.write(" ")
             st.write(" ")
-            st.markdown("<span style='color:#5A5A5A;'>🎯 Please leave your suggestions, issues, features requests, etc. by filling out [this form - add the link!]().",unsafe_allow_html=True)
+            st.markdown("<span style='color:#5A5A5A;'>🎯 Please share your suggestions, issues, features requests, etc.",unsafe_allow_html=True)
 
 #### display function for the header display
 def heads():
@@ -95,7 +95,7 @@ def heads():
 
 #### display function for the contact info
 def contact():
-    st.markdown("Email : [xyz@gmail.com](mailto:xyz@gmail.com)")
+    st.markdown("Email : [makshay@sigmoidanalytics.com](mailto:makshay@sigmoidanalytics.com)")
 
 #### function to clear the cache and initialize the chat
 def clear(greeting=greeting):
