@@ -7,6 +7,7 @@ from streamlit_chat import message ###### Import message function from streamlit
 from configparser import ConfigParser ###### Import ConfigParser library to read config file for greeting
 from chat import initialize_chat ###### Import initialize_chat function from chat.py to initialise chat upon clearing session state
 from PIL import Image ###### Import Image from PIL library to save image uploaded by user
+import os
 
 ####
 config_object = ConfigParser() ###### Read config file for greeting
@@ -19,7 +20,7 @@ greeting=config_object["MSG"]["greeting"] #
 #### this function is called from the main.py file
 def input_selector():
 
-        input_choice=st.sidebar.radio("#### :blue[Choose the Input Method]",('Document','Weblink','YouTube','Audio','Image'))
+        input_choice=st.sidebar.radio("#### :blue[Choose the Input Method]",('Document','Weblink','YouTube','Audio','Image', 'File Directory'))
         if input_choice=="Document":
             with st.sidebar.expander("📁 __Documents__",expanded=True):
                 uploaded=st.file_uploader(label="Select File",type=['pdf','txt'],on_change=clear)
@@ -39,7 +40,10 @@ def input_selector():
                     image=Image.open(uploaded)
                     loc='./Assets/'+str(uploaded.name)
                     image.save(loc)
-        
+        elif input_choice=="File Directory":
+            with st.sidebar.expander("__File Directory__", expanded=True):
+                uploaded=st.file_uploader(label="Select File",type=['pdf','txt', 'docx'],on_change=clear, accept_multiple_files=True)
+
         return input_choice, uploaded
 
 

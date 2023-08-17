@@ -8,6 +8,10 @@ import os #### Import os to remove image file from Assets folder
 from langchain.document_loaders import YoutubeLoader #### Import YoutubeLoader to extract text from YouTube link
 from langchain.document_loaders import TextLoader #### Import TextLoader to extract text from text file
 from langchain.document_loaders.image import UnstructuredImageLoader #### Import UnstructuredImageLoader to extract text from image file
+# from langchain.document_loaders import DirectoryLoader #### Import DirectoryLoader to extract text from all the documents within the directory
+from langchain.document_loaders import PyPDFLoader
+from langchain.document_loaders import Docx2txtLoader
+import docx
 import pdfplumber #### Import pdfplumber to extract text from pdf file
 import pathlib #### Import pathlib to extract file extension
 import requests #### Import requests to extract text from weblink
@@ -46,6 +50,9 @@ def check_upload(uploaded,input_choice): #### Function to check if file has been
         words, pages, string_data, tokens=extract_image(loc) #### Extract text from image file ####
         os.remove(loc) #### Remove image file from Assets folder ####
         return words, pages, string_data, True, tokens  #### Return number of words, number of embeddings, extracted text, True to indicate successful upload and number of tokens ####
+    elif input_choice=="File Directory":
+        words, pages, string_data, tokens = extract_directory_files(uploaded)
+        return words, pages, string_data, True, tokens
     else: #### If input choice is not any of the above, return False to indicate failed upload ####
         return 0,0,0,False,0 #### Return 0 for number of words, 0 for number of embeddings, 0 for extracted text, False to indicate failed upload and 0 for number of tokens ####
     
@@ -67,6 +74,31 @@ All Text Data Extraction Functions
     ## Uploaded as an image file less than 200MB size
 '''
 '''_________________________________________________________________________________________________________________'''
+
+def extract_directory_files(feed):
+    text = ""
+
+    for file in feed:
+        print(file)
+        print(type(file))
+
+        if file.name.endswith(".pdf"):
+            with pdfplumber.open(file) as pdf: 
+                pages = pdf.pages 
+                for p in pages: 
+                    text += p.extract_text() 
+        elif file.name.endswith(".docx"):
+            doc = docx.Document(file)
+            for paragraph in doc.paragraphs:
+                text += " ".join(paragraph.text.split())
+        elif file.name.endswith(".txt"):
+            text += " ".join(feed.read().decode("utf-8"))
+
+
+    words = len(text.split())
+    tokens = num_tokens_from_string(text, encoding_name="cl100k_base")
+
+    return words, 0, text, tokens
 
 ####extract_data function to extract text from uploaded file
 ####Higher order function to select uploaders based on file type
