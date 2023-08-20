@@ -7,7 +7,7 @@ import openai ###### Import OpenAI library
 import streamlit as st ###### Import Streamlit library
 import os ###### Import os library for environment variables
 from configparser import ConfigParser ###### Import ConfigParser library for reading config file to get model
-
+import requests
 
 #### Create config object and read the config file ####
 config_object = ConfigParser() ###### Create config object
@@ -30,7 +30,7 @@ def check_key(): ###### Check if OpenAI API key is present
     elif os.path.exists(".venv") and os.environ.get("OPENAI_API_KEY") is not None:
         openai.api_key=os.environ["OPENAI_API_KEY"] 
         if validate_key(): 
-            st.sidebar.success("OpenAI API key loaded from .env", icon="🚀")
+            st.sidebar.success("API key loaded from .env", icon="🚀")
             return True ###### If key is present, return True
         else:
             del os.environ['OPENAI_API_KEY']
@@ -49,7 +49,14 @@ def check_key(): ###### Check if OpenAI API key is present
     
 def validate_key():
     try:
-        r=openai.Completion.create(model=models, prompt="t.",max_tokens=5)
+        # r=openai.Completion.create(model=models, prompt="t.",max_tokens=5)
+        response = requests.get(openai.api_key+"/health-check")
+
+        if response.status_code == 200:
+            print("The FastAPI application is running.")
+        else:
+            print("The FastAPI application is not running.")
+        
         st.sidebar.success("API key validated")
         return True
     except:
@@ -60,10 +67,9 @@ def clear_key():
     openai.api_key=None
 
 def input_key():
-
     openai.api_key=None
     with st.sidebar.form("API",clear_on_submit=True):
-            api_key=st.text_input("Please enter your OpenAI API key",type='default')
+            api_key=st.text_input("Please enter your API key",type='default')
             submit = st.form_submit_button("Enter")
     if submit:
         openai.api_key=api_key

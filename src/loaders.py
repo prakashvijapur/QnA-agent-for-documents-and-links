@@ -17,6 +17,7 @@ import pathlib #### Import pathlib to extract file extension
 import requests #### Import requests to extract text from weblink
 from bs4 import BeautifulSoup #### Import BeautifulSoup to parse response from weblink
 import openai #### Import openai to extract text from audio file
+import json
 '''Libraries for Embeddings'''
 from langchain.text_splitter import RecursiveCharacterTextSplitter #### Import RecursiveCharacterTextSplitter to split text into chunks of 10000 tokens
 from langchain.embeddings.openai import OpenAIEmbeddings #### Import OpenAIEmbeddings to create embeddings
@@ -24,8 +25,11 @@ from langchain.vectorstores import FAISS #### Import FAISS to create embeddings
 '''Libraries for Web App'''
 import tiktoken #### Import tiktoken to count number of tokens
 import streamlit as st #### Import streamlit to create web app
-
+from configparser import ConfigParser
 '''_________________________________________________________________________________________________________________'''
+config_object = ConfigParser()
+config_object.read("./config.ini")
+
 
 ####check_upload function to check if file has been uploaded
 ####uses extract_data, extract_page, extract_YT, extract_audio, extract_image to extract text from uploaded file
@@ -54,7 +58,7 @@ def check_upload(uploaded,input_choice): #### Function to check if file has been
         words, pages, string_data, tokens = extract_directory_files(uploaded)
         return words, pages, string_data, True, tokens
     else: #### If input choice is not any of the above, return False to indicate failed upload ####
-        return 0,0,0,False,0 #### Return 0 for number of words, 0 for number of embeddings, 0 for extracted text, False to indicate failed upload and 0 for number of tokens ####
+        return 0, 0, 0, False, 0 #### Return 0 for number of words, 0 for number of embeddings, 0 for extracted text, False to indicate failed upload and 0 for number of tokens ####
     
 '''_________________________________________________________________________________________________________________'''
 
@@ -230,7 +234,12 @@ def create_embeddings(text): #### Function to create embeddings from text ####
     db = FAISS.from_documents(docs, embeddings) #### Create embeddings from text ####
     return db, num_emb #### Return database with embeddings and number of embeddings ####
 '''_________________________________________________________________________________________________________________'''
+def faiss_db_file_name(text):
+    data = {"text":text}
+    response = requests.post(openai.api_key+"/db-generation/", data=json.dumps(data))
+    file_name = json.loads(response.content)
 
+    return file_name
 
 ####num_tokens_from_string function to count number of tokens in a text string
 ####uses tiktoken to count number of tokens in a text string

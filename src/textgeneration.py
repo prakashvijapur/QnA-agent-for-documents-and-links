@@ -4,12 +4,15 @@
 import streamlit as st ###### import streamlit library for creating the web app
 import openai ###### import openai library for calling the OpenAI API
 from configparser import ConfigParser ###### import ConfigParser library for reading the config file
+import requests
+import json
 '''_________________________________________________________________________________________________________________'''
 
 #### Create config object and read the config file ####
 config_object = ConfigParser() ###### Create config object
 config_object.read("./config.ini") ###### Read config file
 models=config_object["MODEL"]["model"] ##### model for GPT call
+
 '''_________________________________________________________________________________________________________________'''
 
 
@@ -71,6 +74,21 @@ def q_response(query,doc,models): ###### q_response function
     return text_final ###### return the final answer
 '''_________________________________________________________________________________________________________________'''
 
+def llm_response(query, doc):
+    prompt=f"Answer the question below only from the context provided. Answer in detail and in a friendly, enthusiastic tone. If not in the context, respond with '100'\n context:{doc}.\nquestion:{query}.\nanswer:"
+    response = requests.post(openai.api_key+"/text-generation", data=json.dumps({"text":prompt}))
+    text = json.loads(response.content)
+
+    try:
+        if int(text)==100:
+            data = {"text":query}
+            response = requests.post(openai.api_key+"/text-generation", data=json.dumps(data))
+            text2 = json.loads(response.content)        
+            text_final = "I am sorry, I couldn't find the information in the documents provided.\nHere's the information I have from the data I was pre-trained on-\n"+text2
+    except:
+        text_final = text
+    
+    return text_final
 
 #### chat_gpt_call function to call the OpenAI API for chat ####
 #### This function takes the following inputs: ####
@@ -156,9 +174,14 @@ def q_response_chat(query,doc,mdict): ###### q_response_chat function
 #### query: the question to be answered ####
 #### This function returns the following outputs: ####
 #### defin[0].page_content: the most relevant section to the user question ####
-def search_context(db,query): ###### search_context function
-     defin=db.similarity_search(query) ###### call the FAISS similarity_search function that searches the database for the most relevant section to the user question and orders the results in descending order of relevance
-     return defin[0].page_content ###### return the most relevant section to the user question
+def search_context(db_fn, query): ###### search_context function
+    
+    data = {"fn":db_fn, "query":query}
+    response = requests.post(openai.api_key+"/finding-context/", data=json.dumps(data))
+    context = json.loads(response.content)
+
+    # defin=db.similarity_search(query) ###### call the FAISS similarity_search function that searches the database for the most relevant section to the user question and orders the results in descending order of relevance
+    return context ###### return the most relevant section to the user question
 '''_________________________________________________________________________________________________________________'''
 
 

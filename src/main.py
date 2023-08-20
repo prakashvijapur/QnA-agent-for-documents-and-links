@@ -19,8 +19,8 @@ from PIL import Image ###### Import Image library for loading images
 import openai ###### Import OpenAI library
 import os ###### Import os library for environment variables
 from utils import * ###### Import utility functions
-from loaders import create_embeddings, check_upload ###### Import functions to load input from different sources
-from textgeneration import q_response, q_response_chat, search_context, summary, talking, questions ###### Import functions to generate text from input
+from loaders import create_embeddings, faiss_db_file_name, check_upload ###### Import functions to load input from different sources
+from textgeneration import llm_response, q_response, q_response_chat, search_context, summary, talking, questions ###### Import functions to generate text from input
 from api import check_key, validate_key, input_key ###### Import functions to check and validate the OpenAI API key
 from chat import initialize_chat, render_chat, chatbot 
 
@@ -71,8 +71,9 @@ if uploaded is not None and uploaded !="":
         ###### string_data - input text
         ###### succeed - boolean variable to check if input document was read successfully
         ###### token - number of tokens in the input
-        if token>2500: ###### If input is large, create embeddings for the document
-            db,pages=create_embeddings(string_data) 
+        if token>2000: ###### If input is large, create embeddings for the document
+            # db,pages=create_embeddings(string_data) 
+            fn_db = faiss_db_file_name(string_data)
 
     ###### Show input summary ######
     col1, col2, col3=st.sidebar.columns(3) ###### Create columns
@@ -104,15 +105,16 @@ if uploaded is not None and uploaded !="":
                 #### if mdict !=[]:
                 ####     response_text=q_response_chat(inp,info,mdict)
                 ################################################################
-                if token>2500:
+                if token>2000:
                     with st.spinner("Finding most relevant section of the document..."):
-                        info=search_context(db,inp)
+                        info=search_context(fn_db, inp)
                     with st.spinner("Preparing response..."):
-                        final_text=q_response(inp,info,models)
+                        # final_text=q_response(inp,info,models)
+                        final_text = llm_response(inp, info)
                 else:
                     info=string_data
                     with st.spinner("Scanning document for response..."): #### Wait while openai response is awaited ####
-                        final_text=q_response(inp,info,models) #### Gets response to user question. In case the question is out of context, gets general response calling out 'out of context' ####
+                        final_text=llm_response(inp, info) #### Gets response to user question. In case the question is out of context, gets general response calling out 'out of context' ####
                 
                     #### This section creates columns for two buttons, to clear chat and to download the chat as history ####
                 col1,col2,col3,col4=st.columns(4)
