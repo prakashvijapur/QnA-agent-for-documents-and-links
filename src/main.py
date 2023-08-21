@@ -44,10 +44,12 @@ uploaded=None ##### initialize input document to None
 st.set_page_config(layout="wide", page_icon=favicon, page_title="Sigmoid-AnswerBot") ###### Set page layout, favicon and title
 
 #### Set Logo on top sidebar ####
-st.sidebar.image(hline) ###### Add horizontal line
+# st.sidebar.image(hline) ###### Add horizontal line
 c1,c2,c3=st.sidebar.columns([1,3,1]) ###### Create columns
+c2.markdown("""<hr style="width:170%;height:2px;border:none;color:red;background-color:red;margin-left:-35%;text-align:center" /> """, unsafe_allow_html=True)
 c2.image(logo) ###### Add logo to middle column
-st.sidebar.image(hline) ###### Add horizontal line
+c2.markdown("""<hr style="width:170%;height:2px;border:none;color:red;background-color:red;margin-left:-35%;text-align:center" /> """, unsafe_allow_html=True)
+# st.sidebar.image(hline) ###### Add horizontal line
 
 #### First Condition - Check if OpenAI Key is present, otherwise open the key input form ####
 if check_key():
@@ -153,7 +155,7 @@ if uploaded is not None and uploaded !="":
                 
 
     with tab3:  #### About Tab #####
-        st.image(hline)
+        # st.image(hline)
         col1, col2, col3,col5,col4=st.columns([10,1,10,1,10])
 
         with col1:
@@ -168,9 +170,11 @@ if uploaded is not None and uploaded !="":
              third_column()
         st.image(hline)
 else: #### Default Main Page without Chat ####
-    st.image(hline)
+    # st.image(hline)
+    st.markdown("""<hr style="width:100%;height:3px;border:none;color:red;background-color:red;text-align:center" /> """, unsafe_allow_html=True)
     heads()
-    st.image(hline)
+    st.markdown("""<hr style="width:100%;height:3px;border:none;color:red;background-color:red;text-align:center" /> """, unsafe_allow_html=True)
+    # st.image(hline)
     col1, col2, col3,col5,col4=st.columns([10,1,10,1,10])
     with col1:
         first_column()
@@ -184,13 +188,14 @@ else: #### Default Main Page without Chat ####
         #st.image(vline,width=4)
     with col4:
         third_column()
-    st.image(hline)
+    # st.image(hline)
+    st.markdown("""<hr style="width:100%;height:3px;border:none;color:red;background-color:red;text-align:center" /> """, unsafe_allow_html=True)
 
 #### Contact Information ####
 with st.sidebar.expander("📮 __Contact__"):
-    st.image(hline)
+    # st.image(hline)
     contact()
-    st.image(hline)
+    # st.image(hline)
 st.sidebar.image(hline)
 
 #### Reset Button ####
