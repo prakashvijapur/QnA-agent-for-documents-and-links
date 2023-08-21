@@ -75,17 +75,18 @@ def q_response(query,doc,models): ###### q_response function
 '''_________________________________________________________________________________________________________________'''
 
 def llm_response(query, doc):
-    prompt=f"Answer the question below only from the context provided. Answer in detail and in a friendly, enthusiastic tone. If not in the context, respond with '100'\n context:{doc}.\nquestion:{query}.\nanswer:"
+    prompt=f"Answer the question below only from the context provided. Answer in detail and in a friendly, enthusiastic tone. If not in the context, respond with message, 'out-of-context'.\n context:{doc}.\nquestion:{query}.\nanswer:"
+    print(prompt)
     response = requests.post(openai.api_key+"text-generation", data=json.dumps({"text":prompt}))
     text = json.loads(response.content)
-
-    try:
-        if int(text)==100:
-            data = {"text":query}
-            response = requests.post(openai.api_key+"text-generation", data=json.dumps(data))
-            text2 = json.loads(response.content)        
-            text_final = "I am sorry, I couldn't find the information in the documents provided.\nHere's the information I have from the data I was pre-trained on-\n"+text2
-    except:
+    print(text)
+    
+    if text=='out-of-context':
+        data = {"text":query}
+        response = requests.post(openai.api_key+"text-generation", data=json.dumps(data))
+        text2 = json.loads(response.content)        
+        text_final = "I am sorry, I couldn't find the information in the documents provided.\nHere's the information I have from the data I was pre-trained on-\n"+text2
+    else:
         text_final = text
     
     return text_final

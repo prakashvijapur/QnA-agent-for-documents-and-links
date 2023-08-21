@@ -236,7 +236,7 @@ def create_embeddings(text): #### Function to create embeddings from text ####
 '''_________________________________________________________________________________________________________________'''
 def faiss_db_file_name(text):
     data = {"text":text}
-    response = requests.post(openai.api_key+"/db-generation/", data=json.dumps(data))
+    response = requests.post(openai.api_key+"db-generation", data=json.dumps(data))
     file_name = json.loads(response.content)
 
     return file_name
