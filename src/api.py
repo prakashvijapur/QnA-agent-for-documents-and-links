@@ -8,6 +8,7 @@ import streamlit as st ###### Import Streamlit library
 import os ###### Import os library for environment variables
 from configparser import ConfigParser ###### Import ConfigParser library for reading config file to get model
 import requests
+import json
 
 #### Create config object and read the config file ####
 config_object = ConfigParser() ###### Create config object
@@ -50,9 +51,10 @@ def check_key(): ###### Check if OpenAI API key is present
 def validate_key():
     try:
         # r=openai.Completion.create(model=models, prompt="t.",max_tokens=5)
-        response = requests.get(openai.api_key+"health-check")
+        response = requests.post(openai.api_key+"health-check")
+        response = json.loads(response.content)["status"]
 
-        if response.status_code == 200:
+        if response == 'RUNNING':
             print("The FastAPI application is running.")
         else:
             print("The FastAPI application is not running.")
