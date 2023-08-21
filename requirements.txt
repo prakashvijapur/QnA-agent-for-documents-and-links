@@ -17,6 +17,8 @@ torchvision
 unstructured
 pdf2image
 pytesseract
+python-docx
+
 
 
 
