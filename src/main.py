@@ -93,6 +93,7 @@ if uploaded is not None and uploaded !="":
             st.error("#### The input document might be corrupted or the extraction of information from the input link failed. Try uploading a new document or entering a different link")
         else:
             initialize_chat("👋")  #### Initialize session state variables for the chat ####
+
             #### Put user question input on top ####
             with st.form('input form',clear_on_submit=True):
                 inp=st.text_input("Please enter your question below and hit Submit. Please note that this is not a chat, yet 😉", key="current")
@@ -107,7 +108,7 @@ if uploaded is not None and uploaded !="":
                 #### if mdict !=[]:
                 ####     response_text=q_response_chat(inp,info,mdict)
                 ################################################################
-                if token>2000:
+                if token>2500:
                     with st.spinner("Finding most relevant section of the document..."):
                         info=search_context(fn_db, inp)
                     with st.spinner("Preparing response..."):
