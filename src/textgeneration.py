@@ -76,13 +76,13 @@ def q_response(query,doc,models): ###### q_response function
 
 def llm_response(query, doc):
     prompt=f"Answer the question below only from the context provided. Answer in detail and in a friendly, enthusiastic tone. If not in the context, respond with '100'\n context:{doc}.\nquestion:{query}.\nanswer:"
-    response = requests.post(openai.api_key+"/text-generation", data=json.dumps({"text":prompt}))
+    response = requests.post(openai.api_key+"text-generation", data=json.dumps({"text":prompt}))
     text = json.loads(response.content)
 
     try:
         if int(text)==100:
             data = {"text":query}
-            response = requests.post(openai.api_key+"/text-generation", data=json.dumps(data))
+            response = requests.post(openai.api_key+"text-generation", data=json.dumps(data))
             text2 = json.loads(response.content)        
             text_final = "I am sorry, I couldn't find the information in the documents provided.\nHere's the information I have from the data I was pre-trained on-\n"+text2
     except:
@@ -177,7 +177,7 @@ def q_response_chat(query,doc,mdict): ###### q_response_chat function
 def search_context(db_fn, query): ###### search_context function
     
     data = {"fn":db_fn, "query":query}
-    response = requests.post(openai.api_key+"/finding-context/", data=json.dumps(data))
+    response = requests.post(openai.api_key+"finding-context", data=json.dumps(data))
     context = json.loads(response.content)
 
     # defin=db.similarity_search(query) ###### call the FAISS similarity_search function that searches the database for the most relevant section to the user question and orders the results in descending order of relevance
@@ -194,7 +194,9 @@ def search_context(db_fn, query): ###### search_context function
 def summary(info,models): ###### summary function
     prompt="In a 100 words, explain the purpose of the text below:\n"+info+".\n Do not add any pretext or context." ###### create the prompt asking openai to generate a summary of the document
     with st.spinner('Summarizing your uploaded document'): ###### wait while openai response is awaited
-        text, t1, t2, t3=open_ai_call(models,prompt) ###### call the open_ai_call function
+        # text, t1, t2, t3=open_ai_call(models,prompt) ###### call the open_ai_call function
+        response = requests.post(openai.api_key+"text-generation", data=json.dumps({"text":prompt}))
+        text = json.loads(response.content)
     return text ###### return the generated summary
 '''_________________________________________________________________________________________________________________'''
 
@@ -208,7 +210,9 @@ def summary(info,models): ###### summary function
 def talking(info,models): ###### talking function
     prompt="In short bullet points, extract all the main talking points of the text below:\n"+info+".\nDo not add any pretext or context. Write each bullet in a new line." ###### create the prompt asking openai to generate key points of the document
     with st.spinner('Extracting the key points'): ###### wait while openai response is awaited
-        text, t1, t2, t3=open_ai_call(models,prompt) ###### call the open_ai_call function
+        # text, t1, t2, t3=open_ai_call(models,prompt) ###### call the open_ai_call function
+        response = requests.post(openai.api_key+"text-generation", data=json.dumps({"text":prompt}))
+        text = json.loads(response.content) 
     return text ###### return the generated key points
 '''_________________________________________________________________________________________________________________'''
 
@@ -219,10 +223,13 @@ def talking(info,models): ###### talking function
 #### models: the model to be used for generating text ####
 #### This function returns the following outputs: ####
 #### text: the generated questions ####
-def questions(info,models): ###### questions function
+def questions(info, models): ###### questions function
     prompt="Extract ten questions that can be asked of the text below:\n"+info+".\nDo not add any pretext or context." ###### create the prompt asking openai to generate questions from the document
     with st.spinner('Generating a few sample questions'): ###### wait while openai response is awaited
-        text, t1, t2, t3=open_ai_call(models,prompt) ###### call the open_ai_call function
+        # text, t1, t2, t3=open_ai_call(models,prompt) ###### call the open_ai_call function
+        response = requests.post(openai.api_key+"text-generation", data=json.dumps({"text":prompt}))
+        text = json.loads(response.content)
+
     return text ###### return the generated questions
 '''_________________________________________________________________________________________________________________'''
 

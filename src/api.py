@@ -50,7 +50,7 @@ def check_key(): ###### Check if OpenAI API key is present
 def validate_key():
     try:
         # r=openai.Completion.create(model=models, prompt="t.",max_tokens=5)
-        response = requests.get(openai.api_key+"/health-check")
+        response = requests.get(openai.api_key+"health-check")
 
         if response.status_code == 200:
             print("The FastAPI application is running.")

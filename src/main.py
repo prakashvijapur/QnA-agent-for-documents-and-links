@@ -123,12 +123,13 @@ if uploaded is not None and uploaded !="":
                 col4.download_button("Download History",data=f,file_name='history.txt')
 
                 with st.container():
-                        chatbot(inp,final_text) #### adds the latest question and response to the session messages and renders the chat ####
+                        chatbot(inp, final_text) #### adds the latest question and response to the session messages and renders the chat ####
 
     with tab2: #### Document Summary Tab ####
-        if token>2500:
+        if token>2000:
             with st.spinner("Finding most relevant section of the document..."):
-                    info=search_context(db,"The most important section of the document")
+                    # info=search_context(db,"The most important section of the document")
+                    info=search_context(fn_db, "The most important section of the document")
         else:
             info=string_data
         with st.form('tab2',clear_on_submit=False):
