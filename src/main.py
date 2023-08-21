@@ -108,7 +108,7 @@ if uploaded is not None and uploaded !="":
                 #### if mdict !=[]:
                 ####     response_text=q_response_chat(inp,info,mdict)
                 ################################################################
-                if token>2500:
+                if token>2000:
                     with st.spinner("Finding most relevant section of the document..."):
                         info=search_context(fn_db, inp)
                     with st.spinner("Preparing response..."):
