@@ -55,7 +55,7 @@ def first_column():
             st.write(" ")
             st.write(" ")
             st.write(" ")            
-            st.markdown("<span style='color:#5A5A5A;'>🖖 I am built on [Streamlit](https://streamlit.io/) using large language models built by good fellows at [OpenAI](https://openai.com) and a diverse set of document loaders developed by [LangChain](https://python.langchain.com/en/latest/index.html). A huge shout-out to [Stremlit Chat](https://github.com/AI-Yash/st-chat) and [pdfplumber](https://github.com/jsvine/pdfplumber).</span>", unsafe_allow_html=True)
+            st.markdown("<span style='color:#5A5A5A;'>🖖 I am built on [Streamlit](https://streamlit.io/) using large language models and a diverse set of document loaders developed by [LangChain](https://python.langchain.com/en/latest/index.html). A huge shout-out to [Stremlit Chat](https://github.com/AI-Yash/st-chat) and [pdfplumber](https://github.com/jsvine/pdfplumber).</span>", unsafe_allow_html=True)
             st.write(" ")
             st.write(" ")
             st.markdown("<p style='color:#5A5A5A;'>🖖 Presently, Documents(.pdf and .txt), web ulrs(single page), YouTube links, Audio files and text from Images are enabled. Websites and Spreadsheets are next in pipeline.</p>", unsafe_allow_html=True)
@@ -68,8 +68,8 @@ def first_column():
 def second_column():
             st.markdown("<p style='text-align:center; color:black;'><u><b>How to Use</u></b></p>",unsafe_allow_html=True)
             st.markdown("<span style='color:#5A5A5A;'>👉🏽 Firstly, you need to enter your api key🔧 in the input box on the sidebar.</span>",unsafe_allow_html=True)
-            with st.expander("Why do I need an API key?"):
-                st.markdown("<span style='color:#5A5A5A;'>🌟 AnswerBot uses Llama-2-7b-chat hosted on aws using FastAPI. Currently, we uses a smaller model which could limits the quality of output generated.",unsafe_allow_html=True)
+            with st.expander("About the API"):
+                st.markdown("<span style='color:#5A5A5A;'>🌟 AnswerBot uses Llama-2-7b-chat hosted on aws using FastAPI. You'll require a key to access the api. Currently, we uses a smaller model which could limits the quality of output generated.",unsafe_allow_html=True)
 
             st.markdown("<span style='color:#5A5A5A;'>👉🏽 You can then choose the asset you want to chat on. From the radio buttons on the sidebar. Presently you can select 📜 documents or 🔗 links to webpages, YouTube videos, images basis your choice.",unsafe_allow_html=True)
             st.write(" ")
