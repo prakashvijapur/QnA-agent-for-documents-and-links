@@ -89,7 +89,7 @@ if (st.session_state["api_key"] is None) or (st.session_state["uploaded"]==False
 
 # ----------------------------------------------------------------------------------------------------------------------
 
-print("Before entering step 2", st.session_state["api_key"])
+# print("Before entering step 2", st.session_state["api_key"])
 
 #### If input mode has been chosen and link/doc provided, convert the input to text ####
 if (st.session_state["api_key"] is not None) and (st.session_state["uploaded"]==True):
@@ -149,6 +149,7 @@ if (st.session_state["api_key"] is not None) and (st.session_state["uploaded"]==
                     with st.spinner("Preparing response..."):
                         final_text = llm_response(inp, info, model_api)
                 else:
+                    print("Step 3: ")
                     info = st.session_state["string_data"]
                     with st.spinner("Preparing response..."): #### Wait while openai response is awaited ####
                         final_text = llm_response(inp, info, model_api) #### Gets response to user question. In case the question is out of context, gets general response calling out 'out of context' ####
@@ -234,7 +235,9 @@ with st.sidebar.expander("📮 __Contact__"):
 
 #### Reset Button ####
 if st.sidebar.button("🆘 Reset Application",key="Duo",use_container_width=True):
-    st.session_state["api_key"] = None
+    for key in st.session_state.keys():
+        del st.session_state[key]
+
     openai.api_key = None
     del os.environ["OPENAI_API_KEY"]
     
