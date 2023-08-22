@@ -70,8 +70,10 @@ def llm_response(query, doc, model_api):
     #     Answer the question below only from the context provided. Answer in detail and in a friendly, enthusiastic tone. 
     #     If not in the context, respond with 100.\n context:{doc}.\nquestion:{query}.\nanswer:
     # """
-    prompt = f"""
-        Provide your response based on the provided context. If the question doesn't match the context, respond with: 'I apologize, but the question doesn't seem directly related to the context.'
+    prompt=f"""
+        Answer the question only based on the provided context. 
+        If the question cannot be answered using the information provided answer with 'I apologize, but the question doesn't seem directly related to the context.'
+        Else, Craft your response in a clear and detailed manner based on context.
 
         Context: {doc}
         Question: {query}
