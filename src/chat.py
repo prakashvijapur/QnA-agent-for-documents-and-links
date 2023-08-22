@@ -13,14 +13,22 @@ from streamlit_chat import message ###### Import message function from streamlit
 ### pastinp and pastresp are lists of strings
 ### history is a list of lists of strings because the chat history is stored as a list of lists of strings
 def initialize_chat(bot_m=None):
-        if 'history' not in st.session_state:
-            st.session_state['history']=[]
+    if 'history' not in st.session_state:
+        st.session_state['history']=[]
 
-        if 'pastinp' not in st.session_state:
-            st.session_state['pastinp']=[]
+    if 'pastinp' not in st.session_state:
+        st.session_state['pastinp']=[]
 
-        if 'pastresp' not in st.session_state:
-            st.session_state['pastresp']=[bot_m]  
+    if 'pastresp' not in st.session_state:
+        st.session_state['pastresp']=[bot_m]  
+
+    if "upload" not in st.session_state:
+        st.session_state["upload"] = None
+
+    if "fn_db" not in st.session_state:
+        st.session_state["fn_db"] = None 
+
+    
 
 ### Function for rendering chat
 ### Each list of strings is a conversation between the user and the bot

@@ -15,11 +15,14 @@ config_object.read("./config.ini") #
 greeting=config_object["MSG"]["greeting"] #
 ###
 
+def api_selector():
+    input_choice = st.sidebar.radio("#### :blue[Choose the LLM]", ("OpenAI's GPT-3 [text-davinci-003]", "Meta-Llama-2 [llama-2-7b-chat]"))
+    return input_choice
+        
 
 #### function to display document input options and return the input choice and uploaded file
 #### this function is called from the main.py file
 def input_selector():
-
         input_choice=st.sidebar.radio("#### :blue[Choose the Input Method]",('Document','Weblink','YouTube','Audio','Image', 'File Directory'))
         if input_choice=="Document":
             with st.sidebar.expander("📁 __Documents__",expanded=True):

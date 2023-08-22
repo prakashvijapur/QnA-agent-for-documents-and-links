@@ -35,7 +35,7 @@ config_object.read("./config.ini")
 ####uses extract_data, extract_page, extract_YT, extract_audio, extract_image to extract text from uploaded file
 ####parameters: "uploaded" is the uploaded file, "input_choice" is the input choice selected by the user
 ####returns: words->number of words, pages->number of embeddings, string_data->text extracted, True->to indicate successful upload, tokens->number of tokens from tiktoken
-@st.cache_data #### Cache upload to avoid re-upload and re-extraction of files ####
+#@st.cache_data #### Cache upload to avoid re-upload and re-extraction of files ####
 def check_upload(uploaded,input_choice): #### Function to check if file has been uploaded ####
     if input_choice=="Document": #### If input choice is document, call extract_data function ####
         words, pages, string_data, tokens=extract_data(uploaded) #### Extract text from uploaded file ####
@@ -222,21 +222,26 @@ def extract_image(feed): #### Function to extract text from image file ####
 ####Embeddings are created once per input and only if the input text is greater than 2500 tokens
 @st.cache_data #### Cache embeddings to avoid re-embedding ####
 def create_embeddings(text): #### Function to create embeddings from text ####
-    with open('temp.txt','w') as f: #### Write text to a temporary file ####
-         f.write(text) #### Write text to a temporary file ####
-         f.close() #### Close temporary file ####
-    loader=TextLoader('temp.txt') #### Load temporary file using TextLoader ####
-    document=loader.load() #### Extract text from temporary file ####
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=10000, chunk_overlap=2000) #### Initialize text splitter to split text into chunks of 10000 tokens ####
-    docs = text_splitter.split_documents(document) #### Split document into chunks of 10000 tokens ####
-    num_emb=len(docs) #### Count number of embeddings ####
+    with open(os.getcwd()+'temp.txt','w') as f: #### Write text to a temporary file ####
+         f.write(text)
+         f.close()
+    loader = TextLoader(os.getcwd()+'temp.txt') 
+    document = loader.load()
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=4000, chunk_overlap=2000)
+    docs = text_splitter.split_documents(document) 
+
     embeddings = OpenAIEmbeddings() #### Initialize embeddings ####
-    db = FAISS.from_documents(docs, embeddings) #### Create embeddings from text ####
-    return db, num_emb #### Return database with embeddings and number of embeddings ####
+    db = FAISS.from_documents(docs, embeddings) 
+    file_name = "faiss_obj"
+    db.save_local(folder_path=os.cwd(), index_name=file_name)
+
+    return file_name
 '''_________________________________________________________________________________________________________________'''
+
 def faiss_db_file_name(text):
+    print(">>>>>>>> db-generation")
     data = {"text":text}
-    response = requests.post(openai.api_key+"db-generation", data=json.dumps(data))
+    response = requests.post(st.session_state["api_key"]+"db-generation", data=json.dumps(data))
     file_name = json.loads(response.content)
 
     return file_name

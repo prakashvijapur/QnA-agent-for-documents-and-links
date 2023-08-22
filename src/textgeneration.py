@@ -6,12 +6,13 @@ import openai ###### import openai library for calling the OpenAI API
 from configparser import ConfigParser ###### import ConfigParser library for reading the config file
 import requests
 import json
+from langchain.vectorstores import FAISS
+import os
 '''_________________________________________________________________________________________________________________'''
 
 #### Create config object and read the config file ####
 config_object = ConfigParser() ###### Create config object
 config_object.read("./config.ini") ###### Read config file
-models=config_object["MODEL"]["model"] ##### model for GPT call
 
 '''_________________________________________________________________________________________________________________'''
 
@@ -45,50 +46,66 @@ def moderation(text): ###### moderation function
 #### tokens: the number of tokens used for generating text ####
 #### words: the number of words used for generating text ####
 #### reason: the reason for stopping the text generation ####
-def open_ai_call(models="", prompt="", temperature=0.7, max_tokens=256,top_p=0.5,frequency_penalty=1,presence_penalty=1,user_id="test-user"): ###### open_ai_call function
-        response=openai.Completion.create(model=models, prompt=prompt,temperature=temperature,max_tokens=max_tokens,top_p=top_p,frequency_penalty=frequency_penalty,presence_penalty=presence_penalty,user=user_id) ###### call the OpenAI Completion API
-        text=moderation(response['choices'][0]['text']) ###### call the moderation function
-        tokens=response['usage']['total_tokens'] ###### count the number of tokens used
-        words=len(text.split()) ###### count the number of words used
-        reason=response['choices'][0]['finish_reason'] ###### get the reason for stopping the text generation
-        return text, tokens, words, reason ###### return the generated text, number of tokens, number of words and reason for stopping the text generation
-'''_________________________________________________________________________________________________________________'''
+def open_ai_call(model="", prompt="", temperature=0.7, max_tokens=256, top_p=0.5, frequency_penalty=1, presence_penalty=1, user_id="test-user"):
+        response = openai.Completion.create(
+            model=model, prompt=prompt, temperature=temperature, max_tokens=max_tokens, top_p=top_p, frequency_penalty=frequency_penalty,
+            presence_penalty=presence_penalty, user=user_id
+        )
 
+        # Checking if the response is appropriate
+        text = moderation(response['choices'][0]['text'])
 
-#### q_response function to generate an answer to a question ####
-#### This function takes the following inputs: ####
-#### query: the question to be answered ####
-#### doc: the document to be used for answering the question ####
-#### models: the model to be used for generating text ####
-#### This function returns the following outputs: ####
-#### text_final: the generated answer ####
-def q_response(query,doc,models): ###### q_response function
-    prompt=f"Answer the question below only from the context provided. Answer in detail and in a friendly, enthusiastic tone. If not in the context, respond with '100'\n context:{doc}.\nquestion:{query}.\nanswer:" ###### create the prompt asking openai to generate an answer with the question and document as context and '100' as the answer if the answer is not in the context
-    text, t1, t2, t3=open_ai_call(models,prompt) ###### call the open_ai_call function
-    try: ###### try block
-        if int(text)==100: ###### check if the generated text is 100. This is the case when the generated text is not in the context
-            text2,tx,ty,tz=open_ai_call(models, query) ###### call the open_ai_call function without any context
-            text_final="I am sorry, I couldn't find the information in the documents provided.\nHere's the information I have from the data I was pre-trained on-\n"+text2 ###### create the final answer with the result is not in the context
-    except: ###### except block
-        text_final=text ###### create the final answer with the result in the context
-    return text_final ###### return the final answer
-'''_________________________________________________________________________________________________________________'''
+        tokens = response['usage']['total_tokens']
+        words = len(text.split())
 
-def llm_response(query, doc):
-    prompt=f"Answer the question below only from the context provided. Answer in detail and in a friendly, enthusiastic tone. If not in the context, respond with 100.\n context:{doc}.\nquestion:{query}.\nanswer:"
+        # get the reason for stopping the text generation
+        reason = response['choices'][0]['finish_reason'] 
+        
+        return text, tokens, words, reason 
+
+# The function generates answer based on the user query and context provided. 
+def llm_response(query, doc, model_api):
+    # prompt = f"""
+    #     Answer the question below only from the context provided. Answer in detail and in a friendly, enthusiastic tone. 
+    #     If not in the context, respond with 100.\n context:{doc}.\nquestion:{query}.\nanswer:
+    # """
+    prompt = f"""
+        Answer the question based only from the context Provide. Answer the question in a precise and informative way. Articulate your answer properly. If the question is not directly related to the context, respond with: 'I apologize, but the question doesn't seem directly related to the context.'
+
+        Context: {doc}
+        Question: {query}
+        Your response: 
+    """
     print(prompt)
-    response = requests.post(openai.api_key+"text-generation", data=json.dumps({"text":prompt}))
-    text = json.loads(response.content)
-    print(text)
-    
-    try:
-        if int(text)==100:
-            data = {"text":query}
-            response = requests.post(openai.api_key+"text-generation", data=json.dumps(data))
-            text2 = json.loads(response.content)        
-            text_final = "I am sorry, I couldn't find the information in the documents provided.\nHere's the information I have from the data I was pre-trained on-\n"+text2
-    except:
-        text_final = text
+
+    if model_api == "OpenAI's GPT-3 [text-davinci-003]":
+        model = config_object["MODEL"]["openai_model"]
+        text, _, _, _ = open_ai_call(model, prompt)
+        try: 
+            # If the query is out of context
+            if int(text)==100: 
+                text2, _, _, _ = open_ai_call(model, query)
+                text_final = """
+                I am sorry, I couldn't find the information in the documents provided.\nHere's the information I have from the data I was pre-trained on-\n
+                """ + text2 
+        except:
+            text_final=text
+    elif model_api == "Meta-Llama-2 [llama-2-7b-chat]":
+        response = requests.post(st.session_state["api_key"]+"text-generation", data=json.dumps({"text":prompt}))
+        text = json.loads(response.content)
+        print(text)
+
+        try:
+            # If the query is out of context
+            if int(text)==100:
+                data = {"text":query}
+                response = requests.post(st.session_state["api_key"]+"text-generation", data=json.dumps(data))
+                text2 = json.loads(response.content)        
+                text_final= """
+                I am sorry, I couldn't find the information in the documents provided.\nHere's the information I have from the data I was pre-trained on-\n
+                """ + text2 
+        except:
+            text_final = text
     
     return text_final
 
@@ -156,17 +173,18 @@ def create_dict_from_session(): ###### create_dict_from_session function
 #### This function returns the following outputs: ####
 #### text_final: the generated answer ####
 #### This function is not used in the current version of VIDIA ####
-def q_response_chat(query,doc,mdict): ###### q_response_chat function
-    prompt=f"Answer the question below only and only from the context provided. Answer in detail and in a friendly, enthusiastic tone. If not in the context, respond in no other words except '100', only and only with the number '100'. Do not add any words to '100'.\n context:{doc}.\nquestion:{query}.\nanswer:" ###### create the prompt asking openai to generate an answer with the question and document as context and '100' as the answer if the answer is not in the context
-    mdict.append({"role":"user","content":prompt}) ###### add the prompt to the message dictionary
-    response_text, response_dict, words, total_tokens, response_tokens=chat_gpt_call(message_dict=mdict) ###### call the chat_gpt_call function
-    try: ###### try block
-        if int(response_text)==100:  ###### check if the generated text is 100. This is the case when the generated text is not in the context
-            text2,tx,ty,tz=open_ai_call(models, query) ###### call the open_ai_call function without any context
-            text_final="I am sorry, I couldn't find the information in the documents provided.\nHere's the information I have from the data I was pre-trained on-\n"+text2 ###### create the final answer with the result is not in the context
-    except:     ###### except block
-        text_final=response_text ###### create the final answer with the result in the context
-    return text_final ###### return the final answer
+# def q_response_chat(query,doc,mdict): ###### q_response_chat function
+#     prompt=f"Answer the question below only and only from the context provided. Answer in detail and in a friendly, enthusiastic tone. If not in the context, respond in no other words except '100', only and only with the number '100'. Do not add any words to '100'.\n context:{doc}.\nquestion:{query}.\nanswer:" ###### create the prompt asking openai to generate an answer with the question and document as context and '100' as the answer if the answer is not in the context
+#     mdict.append({"role":"user","content":prompt}) ###### add the prompt to the message dictionary
+#     response_text, response_dict, words, total_tokens, response_tokens=chat_gpt_call(message_dict=mdict) ###### call the chat_gpt_call function
+#     try: ###### try block
+#         if int(response_text)==100:  ###### check if the generated text is 100. This is the case when the generated text is not in the context
+#             text2,tx,ty,tz=open_ai_call(models, query) ###### call the open_ai_call function without any context
+#             text_final="I am sorry, I couldn't find the information in the documents provided.\nHere's the information I have from the data I was pre-trained on-\n"+text2 ###### create the final answer with the result is not in the context
+#     except:     ###### except block
+#         text_final=response_text ###### create the final answer with the result in the context
+#     return text_final ###### return the final answer
+
 '''_________________________________________________________________________________________________________________'''
 
 
@@ -176,14 +194,23 @@ def q_response_chat(query,doc,mdict): ###### q_response_chat function
 #### query: the question to be answered ####
 #### This function returns the following outputs: ####
 #### defin[0].page_content: the most relevant section to the user question ####
-def search_context(db_fn, query): ###### search_context function
-    
-    data = {"fn":db_fn, "query":query}
-    response = requests.post(openai.api_key+"finding-context", data=json.dumps(data))
-    context = json.loads(response.content)
+def search_context(fn_db, query, model_api): ###### search_context function
+    print(">>>>> Searching-Context")
 
-    # defin=db.similarity_search(query) ###### call the FAISS similarity_search function that searches the database for the most relevant section to the user question and orders the results in descending order of relevance
-    return context ###### return the most relevant section to the user question
+    if model_api == "OpenAI's GPT-3 [text-davinci-003]":
+        db = FAISS.load_local(
+            folder_path=os.getcwd(),
+            index_name=fn_db,
+            embeddings=open
+        )
+        defin = db.similarity_search(query)
+        context = defin[0].page_content
+    elif model_api == "Meta-Llama-2 [llama-2-7b-chat]":
+        data = {"fn":fn_db, "query":query}
+        response = requests.post(st.session_state["api_key"]+"finding-context", data=json.dumps(data))
+        context = json.loads(response.content)
+
+    return context # Return the most relevant section to the user question
 '''_________________________________________________________________________________________________________________'''
 
 
@@ -197,7 +224,7 @@ def summary(info,models): ###### summary function
     prompt="In a 100 words, explain the purpose of the text below:\n"+info+".\n Do not add any pretext or context." ###### create the prompt asking openai to generate a summary of the document
     with st.spinner('Summarizing your uploaded document'): ###### wait while openai response is awaited
         # text, t1, t2, t3=open_ai_call(models,prompt) ###### call the open_ai_call function
-        response = requests.post(openai.api_key+"text-generation", data=json.dumps({"text":prompt}))
+        response = requests.post(st.session_state["api_key"]+"text-generation", data=json.dumps({"text":prompt}))
         text = json.loads(response.content)
     return text ###### return the generated summary
 '''_________________________________________________________________________________________________________________'''
@@ -213,7 +240,7 @@ def talking(info,models): ###### talking function
     prompt="In short bullet points, extract all the main talking points of the text below:\n"+info+".\nDo not add any pretext or context. Write each bullet in a new line." ###### create the prompt asking openai to generate key points of the document
     with st.spinner('Extracting the key points'): ###### wait while openai response is awaited
         # text, t1, t2, t3=open_ai_call(models,prompt) ###### call the open_ai_call function
-        response = requests.post(openai.api_key+"text-generation", data=json.dumps({"text":prompt}))
+        response = requests.post(st.session_state["api_key"]+"text-generation", data=json.dumps({"text":prompt}))
         text = json.loads(response.content) 
     return text ###### return the generated key points
 '''_________________________________________________________________________________________________________________'''
@@ -229,7 +256,7 @@ def questions(info, models): ###### questions function
     prompt="Extract ten questions that can be asked of the text below:\n"+info+".\nDo not add any pretext or context." ###### create the prompt asking openai to generate questions from the document
     with st.spinner('Generating a few sample questions'): ###### wait while openai response is awaited
         # text, t1, t2, t3=open_ai_call(models,prompt) ###### call the open_ai_call function
-        response = requests.post(openai.api_key+"text-generation", data=json.dumps({"text":prompt}))
+        response = requests.post(st.session_state["api_key"]+"text-generation", data=json.dumps({"text":prompt}))
         text = json.loads(response.content)
 
     return text ###### return the generated questions
