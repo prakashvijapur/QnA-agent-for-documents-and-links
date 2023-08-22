@@ -101,11 +101,13 @@ if (st.session_state["api_key"] is not None) and (st.session_state["uploaded"]==
         ###### token - number of tokens in the input
 
     ###### Show input summary ######
-    col1, col2, col3=st.sidebar.columns(3) ###### Create columns
+    # col1, col2, col3=st.sidebar.columns(3) ###### Create columns
+    # col1.markdown("###### :violet[#Tokens:] :blue["+str(st.session_state["token"])+"]") ###### Show number of tokens in the input
+    # col2.write("###### :violet[#Words:] :blue["+str(st.session_state["words"])+"]") ###### Show number of words in the input
+    # col3.markdown("###### :violet[#Embeddings:] :blue["+str(st.session_state["pages"])+"]") ###### Show number of embeddings in the input
+    col1, col2 = st.sidebar.columns(2) ###### Create columns
     col1.markdown("###### :violet[#Tokens:] :blue["+str(st.session_state["token"])+"]") ###### Show number of tokens in the input
     col2.write("###### :violet[#Words:] :blue["+str(st.session_state["words"])+"]") ###### Show number of words in the input
-    col3.markdown("###### :violet[#Embeddings:] :blue["+str(st.session_state["pages"])+"]") ###### Show number of embeddings in the input
-
 
     #### Splitting app into tabs ####
     tab1, tab2, tab3=st.tabs(["|__QnA__ 🔍|","|__Document Summary__ 📜|","|__About AnswerBot__ 🎭|"])
@@ -161,7 +163,7 @@ if (st.session_state["api_key"] is not None) and (st.session_state["uploaded"]==
                 col4.download_button("Download History",data=f,file_name='history.txt')
 
                 with st.container():
-                        chatbot(inp, final_text) #### adds the latest question and response to the session messages and renders the chat ####
+                    chatbot(inp, final_text) #### adds the latest question and response to the session messages and renders the chat ####
 
     with tab2: #### Document Summary Tab ####
         if st.session_state["token"]>2000:

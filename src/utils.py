@@ -45,8 +45,12 @@ def input_selector():
                     image.save(loc)
         elif input_choice=="File Directory":
             with st.sidebar.expander("__File Directory__", expanded=True):
-                uploaded=st.file_uploader(label="Select File",type=['pdf','txt', 'docx'],on_change=clear, accept_multiple_files=True)
-
+                uploaded=st.file_uploader(label="Select File", type=['pdf','txt', 'docx'], on_change=clear, accept_multiple_files=True)
+                print(">>>>>>>> Input_Selector: ", uploaded)
+                
+                if uploaded == []:
+                     uploaded = ""
+                
         return input_choice, uploaded
 
 

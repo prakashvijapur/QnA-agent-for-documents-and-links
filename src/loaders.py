@@ -36,7 +36,7 @@ config_object.read("./config.ini")
 ####parameters: "uploaded" is the uploaded file, "input_choice" is the input choice selected by the user
 ####returns: words->number of words, pages->number of embeddings, string_data->text extracted, True->to indicate successful upload, tokens->number of tokens from tiktoken
 #@st.cache_data #### Cache upload to avoid re-upload and re-extraction of files ####
-def check_upload(uploaded,input_choice): #### Function to check if file has been uploaded ####
+def check_upload(uploaded, input_choice): #### Function to check if file has been uploaded ####
     if input_choice=="Document": #### If input choice is document, call extract_data function ####
         words, pages, string_data, tokens=extract_data(uploaded) #### Extract text from uploaded file ####
         return words, pages, string_data, True, tokens #### Return number of words, number of embeddings, extracted text, True to indicate successful upload and number of tokens ####
@@ -55,6 +55,7 @@ def check_upload(uploaded,input_choice): #### Function to check if file has been
         os.remove(loc) #### Remove image file from Assets folder ####
         return words, pages, string_data, True, tokens  #### Return number of words, number of embeddings, extracted text, True to indicate successful upload and number of tokens ####
     elif input_choice=="File Directory":
+        print(uploaded)
         words, pages, string_data, tokens = extract_directory_files(uploaded)
         return words, pages, string_data, True, tokens
     else: #### If input choice is not any of the above, return False to indicate failed upload ####

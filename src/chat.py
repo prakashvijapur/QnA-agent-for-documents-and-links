@@ -51,8 +51,8 @@ def render_chat():
 
 ### Function for adding the latest query and VIDIA response
 ### to the session state variables pastinp and pastresp
-def chatbot(query,response):
-
+def chatbot(query, response):
+    
     st.session_state['pastinp'].append(query)
     st.session_state['pastresp'].append(response)
     render_chat()
