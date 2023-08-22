@@ -7,6 +7,7 @@ from configparser import ConfigParser ###### import ConfigParser library for rea
 import requests
 import json
 from langchain.vectorstores import FAISS
+from langchain.embeddings.openai import OpenAIEmbeddings
 import os
 '''_________________________________________________________________________________________________________________'''
 
@@ -198,10 +199,11 @@ def search_context(fn_db, query, model_api): ###### search_context function
     print(">>>>> Searching-Context")
 
     if model_api == "OpenAI's GPT-3 [text-davinci-003]":
+        embeddings = OpenAIEmbeddings()
         db = FAISS.load_local(
             folder_path=os.getcwd(),
             index_name=fn_db,
-            embeddings=open
+            embeddings=embeddings
         )
         defin = db.similarity_search(query)
         context = defin[0].page_content
