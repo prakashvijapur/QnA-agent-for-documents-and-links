@@ -234,7 +234,7 @@ def create_embeddings(text): #### Function to create embeddings from text ####
     embeddings = OpenAIEmbeddings() #### Initialize embeddings ####
     db = FAISS.from_documents(docs, embeddings) 
     file_name = "faiss_obj"
-    db.save_local(folder_path=os.cwd(), index_name=file_name)
+    db.save_local(folder_path=os.getcwd(), index_name=file_name)
 
     return file_name
 '''_________________________________________________________________________________________________________________'''
