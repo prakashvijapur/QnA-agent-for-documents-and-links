@@ -237,11 +237,15 @@ with st.sidebar.expander("📮 __Contact__"):
 
 #### Reset Button ####
 if st.sidebar.button("🆘 Reset Application",key="Duo",use_container_width=True):
-    for key in st.session_state.keys():
-        del st.session_state[key]
+    
+    if "api_key" in st.session_state:
+        st.session_state["api_key"] = None
 
     openai.api_key = None
-    del os.environ["OPENAI_API_KEY"]
+    try:
+        os.environ["OPENAI_API_KEY"] = None
+    except:
+        print("No OpenAI API Key in the environ")
     
     st.experimental_rerun()
 
