@@ -238,8 +238,11 @@ with st.sidebar.expander("📮 __Contact__"):
 #### Reset Button ####
 if st.sidebar.button("🆘 Reset Application",key="Duo",use_container_width=True):
     
-    if "api_key" in st.session_state:
-        st.session_state["api_key"] = None
+    for key in st.session_state.keys():
+        if key == "uploaded":
+            st.session_state["api_key"] = False
+        else:
+            st.session_state["api_key"] = None
 
     openai.api_key = None
     try:
